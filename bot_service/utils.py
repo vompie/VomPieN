@@ -116,6 +116,13 @@ async def processing_basic_user_request(
     - action_type (`str` | `None`): Type of Window's Messenger action
     """
 
+    """
+    user_not_select
+    admin_not_select
+    can_demoted_yourself
+    """
+
+
     # create user if not exist
     user: dict = await get_user_or_create(message=message_query)
 
@@ -150,10 +157,10 @@ async def set_commands_to_user(message_query: Message | CallbackQuery, is_admin:
     commands = [
         {'command': 'menu', 'description': f'🌐 Меню {BOT_NAME}'},
         {'command': 'key', 'description': '🔑 Получить ключ'},
-        {'command': 'profile', 'description': '👤 Личный кабинет'},
+        {'command': 'profile', 'description': '🧛🏻 Личный кабинет'},
     ]
     if is_admin > 0:
-        commands.append({'command': 'admin_panel', 'description': '🐱 Администрирование'})
+        commands.append({'command': 'admin_panel', 'description': '🦇 Администрирование'})
     await IF.set_commands(message_query=message_query, commands=commands)
     if is_admin == -1:
         await unset_admin(tlg_id=message_query.from_user.id)

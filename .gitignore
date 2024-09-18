@@ -12,6 +12,7 @@ __pycache__/
 *.log
 confs/
 backup/
+activate.sh
 
 # Distribution / packaging
 .Python

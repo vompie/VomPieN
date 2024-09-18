@@ -35,13 +35,18 @@ async def add_client(tlg_id: int, level: int = 1) -> bool:
         return False
 
     # restart xray
-    # check status
 
-    # recovery if error
+    # check status
 
     print("YES!")
     return True
 
+    # recovery if error
+    # back copy of last vless file
+    # copy_result: bool = make_copy_vless(old_file=LASTCOPY_VLESS_FILE, new_file=NEW_VLESS_FILE)
+    # restart xray
+    return False
+
 
 if __name__ == "__main__":
-    asyncio.run(add_client(123))
+    asyncio.run(add_client(tlg_id=1))
