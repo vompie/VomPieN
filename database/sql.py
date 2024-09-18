@@ -105,22 +105,16 @@ async def add_new_client(tlg_id: int, uuid: str, email: str, level: int, enabled
     return await execute_query(sql_query, (tlg_id, uuid, email, level, enabled), 'insert')
 
 
-# get enabled clients
-async def get_enabled_clients() -> bool | aiosqlite.Row:
-    sql_query = f"SELECT * FROM clients WHERE enabled = 1"
-    return await execute_selection_query(sql_query, ())
-
-
-# get disabled clients
-async def get_disabled_clients() -> bool | aiosqlite.Row:
-    sql_query = f"SELECT * FROM clients WHERE enabled = 0"
-    return await execute_selection_query(sql_query, ())
-
-
-# get all clients
-async def get_clients() -> bool | aiosqlite.Row:
-    sql_query = f"SELECT * FROM clients"
-    return await execute_selection_query(sql_query, ())
+# get all / disabled / enabled clients
+async def get_clients(type: bool | None = True) -> bool | aiosqlite.Row:
+    # get all clients
+    if type is None:
+        return await execute_selection_query("SELECT * FROM clients", ())
+    # get disabled clients
+    if not type:
+        return await execute_selection_query("SELECT * FROM clients WHERE enabled = 0", ())
+    # get enabled clients
+    return await execute_selection_query("SELECT * FROM clients WHERE enabled = 1", ())
 
 
 # update client   

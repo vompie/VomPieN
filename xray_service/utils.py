@@ -1,8 +1,8 @@
-import os
+import os, shutil
 from json import loads, dumps
 from uuid import uuid1
 
-from DB.sql import add_new_client, get_enabled_clients, get_disabled_clients, get_clients
+from database.sql import add_new_client, get_clients
 
 
 def get_default_vless(file: str) -> dict:
@@ -37,12 +37,33 @@ async def save_client(tlg_id: int, client: dict, enabled: bool = True) -> bool |
 
 async def enabled_clients() -> bool | object:
     """ Get enabled clients """
-    return await get_enabled_clients()
+    return await get_clients(type=True)
 
 async def disabled_clients() -> bool | object:
     """ Get disabled clients """
-    return await get_disabled_clients()
+    return await get_clients(type=False)
 
 async def clients() -> bool | object:
     """ Get clients """
-    return await get_clients()
+    return await get_clients(type=None)
+
+def make_new_vless(vless: dict, clients: list) -> dict:
+    """ Make a new vless configuration file with the given clients """
+    all_clients = [{"id": c['uuid'], "email": c['email'], "level": c['level']} for c in clients]
+    vless['settings']['clients'] = all_clients
+    return vless
+
+def make_copy_vless(old_file: str, new_file: str) -> bool:
+    """ Make a copy of the vless configuration file """
+    try:
+        shutil.copyfile(old_file, new_file)
+    except Exception as e:
+        print(f"Error making copy of vless file: {e}")
+        return False
+    return True
+
+def save_vless_file(vless: dict, file: str) -> bool:
+    """ Save the vless configuration file """
+    with open(file, 'w') as f:
+        f.write(dumps(vless))
+    return True

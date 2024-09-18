@@ -1,10 +1,10 @@
 import logging
 import sys
-from settings import LOGS_FILE
+from settings import LOG_FILE
 
 
 logging.basicConfig(
-    filename=LOGS_FILE,
+    filename=LOG_FILE,
     level=logging.ERROR,
     format='%(asctime)s - %(levelname)s - %(message)s'  # Формат записи в файл
 )

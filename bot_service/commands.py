@@ -62,6 +62,7 @@ async def cmd_seppoku(message: Message):
     await seppoku_admin(message_query=message)
     await processing_basic_user_request(message_query=message, model_name='MM', message_key='main_msg_id')
 
+
 # other messages
 @IF.decor_del_msg
 async def other_msgs(message: Message, command: CommandObject | None = None):

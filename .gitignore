@@ -8,6 +8,10 @@ __pycache__/
 
 .env
 *.sqlite
+*.db
+*.log
+confs/
+backup/
 
 # Distribution / packaging
 .Python

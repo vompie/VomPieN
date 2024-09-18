@@ -8,7 +8,7 @@ from TeleVompy.Interface.window import Window
 from TeleVompy.Interface.interface import Interface
 
 from settings import BOT_NAME, ADMIN_SECRET_KEY
-from DB.sql import create_user, get_user, update_user
+from database.sql import create_user, get_user, update_user
 
 
 Models = Model().models
