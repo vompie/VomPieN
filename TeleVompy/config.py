@@ -1,4 +1,4 @@
-from bot_service.settings import HOME_DIR, DEBUG
+from settings import HOME_DIR, DEBUG
 
 
 class Cfg:

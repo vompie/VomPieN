@@ -1,6 +1,5 @@
-from bot_service.settings import DB_FILE, DEBUG
-import aiosqlite
-import logging
+import aiosqlite, logging
+from settings import DEBUG, DB_FILE
 
 
 # create database
@@ -20,10 +19,14 @@ async def create_database() -> None:
             )
             # create table keys
             await db.execute(f'''
-                CREATE TABLE IF NOT EXISTS keys (
+                CREATE TABLE IF NOT EXISTS clients (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     tlg_id INTEGER,
-                    key TEXT,
+                    uuid TEXT,
+                    email TEXT,
+                    level INTEGER DEFAULT 1,
+                    key TEXT DEFAULT '',
+                    enabled INTEGER DEFAULT 0, 
                     created_at TEXT DEFAULT CURRENT_TIMESTAMP 
                 )'''
             )
@@ -88,8 +91,41 @@ async def get_user(tlg_id: int) -> bool | aiosqlite.Row:
     user = await execute_selection_query(sql_query, (tlg_id, ))
     return user[0] if user else False
 
+
 # update user   
 async def update_user(tlg_id: int, columns: list, values: list) -> bool:
     set_clause = ", ".join([f"{column} = ?" for column in columns])
     sql_query = f"UPDATE users SET {set_clause} WHERE tlg_id = ?"
     return await execute_query(sql_query, (*values, tlg_id))
+
+
+# add new client
+async def add_new_client(tlg_id: int, uuid: str, email: str, level: int, enabled: bool = True) -> bool | int:
+    sql_query = f"INSERT INTO clients (tlg_id, uuid, email, level, enabled) VALUES (?, ?, ?, ?, ?)"
+    return await execute_query(sql_query, (tlg_id, uuid, email, level, enabled), 'insert')
+
+
+# get enabled clients
+async def get_enabled_clients() -> bool | aiosqlite.Row:
+    sql_query = f"SELECT * FROM clients WHERE enabled = 1"
+    return await execute_selection_query(sql_query, ())
+
+
+# get disabled clients
+async def get_disabled_clients() -> bool | aiosqlite.Row:
+    sql_query = f"SELECT * FROM clients WHERE enabled = 0"
+    return await execute_selection_query(sql_query, ())
+
+
+# get all clients
+async def get_clients() -> bool | aiosqlite.Row:
+    sql_query = f"SELECT * FROM clients"
+    return await execute_selection_query(sql_query, ())
+
+
+# update client   
+async def update_client(tlg_id: int, columns: list, values: list) -> bool:
+    set_clause = ", ".join([f"{column} = ?" for column in columns])
+    sql_query = f"UPDATE clients SET {set_clause} WHERE tlg_id = ?"
+    return await execute_query(sql_query, (*values, tlg_id))
+

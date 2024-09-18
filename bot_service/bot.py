@@ -1,6 +1,6 @@
 from TeleVompy.Engine.engine import SingleTonBotEngine
 from TeleVompy.Interface.filters import Filters
-from bot_service.settings import BOT_TOKEN
+from settings import BOT_TOKEN
 
 
 Engine = SingleTonBotEngine(token=BOT_TOKEN)

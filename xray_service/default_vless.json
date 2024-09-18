@@ -1,0 +1,43 @@
+{
+    "inbounds": [
+        {
+            "listen": "@server_ip",
+            "port": "@vless_port",
+            "protocol": "vless",
+            "tag": "reality-in",
+            "settings": {
+                "clients": [
+                ],
+                "decryption": "none"
+            },
+            "streamSettings": {
+                "network": "http",
+                "security": "reality",
+                "httpSettings": {
+                    "host": ["@http_host"],
+                    "path": "@http_path",
+                    "read_idle_timeout": 10,
+                    "health_check_timeout": 15,
+                    "method": "GET"
+                },
+                "realitySettings": {
+                    "show": false,
+                    "dest": "@reality_dest",
+                    "xver": 0,
+                    "serverNames": ["@reality_server_names"],
+                    "privateKey": "@reality_private_key",
+                    "minClientVer": "",
+                    "maxClientVer": "",
+                    "maxTimeDiff": 0,
+                    "shortIds": [""],
+                    "fingerprint": "random"
+                }
+            },
+            "sniffing": {
+                "enabled": true,
+                "destOverride": ["http", "tls", "quic"],
+                "domainsExcluded": ["courier.push.apple.com"]
+            }
+        }
+    ]
+}

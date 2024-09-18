@@ -1,5 +1,4 @@
 from TeleVompy.Interface.window import Window
-from bot_service.settings import BOT_NAME
 
 
 class ErrorMsg(Window):

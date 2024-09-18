@@ -1,6 +1,6 @@
 import logging
 import sys
-from bot_service.settings import LOGS_FILE
+from settings import LOGS_FILE
 
 
 logging.basicConfig(

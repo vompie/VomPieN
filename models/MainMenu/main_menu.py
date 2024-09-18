@@ -1,5 +1,5 @@
 from TeleVompy.Interface.window import Window
-from bot_service.settings import BOT_NAME
+from settings import BOT_NAME
 
 
 class MM(Window):
@@ -14,5 +14,5 @@ class MM(Window):
         self.Page.add_button(model='HowTo', row=0)
         self.Page.add_button(model='GetKey', row=1)
         self.Page.add_button(model='Profile', row=1)
-        self.Page.add_button(model='AdminPanel', row=3)
+        # self.Page.add_button(model='AdminPanel', row=3)
     
