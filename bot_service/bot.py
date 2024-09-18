@@ -1,0 +1,34 @@
+from TeleVompy.Engine.engine import SingleTonBotEngine
+from TeleVompy.Interface.filters import Filters
+from bot_service.settings import BOT_TOKEN
+
+
+Engine = SingleTonBotEngine(token=BOT_TOKEN)
+Filter = Filters()
+
+
+# Main loop
+async def main():
+    from bot_service.commands import cmd_start, cmd_menu, cmd_key, cmd_profile, cmd_admin_panel, cmd_seppoku, other_msgs
+    from bot_service.callbacks import model_callbacks, block_callbacks, other_callback
+    from DB.sql import create_database
+
+    # Create database and tables
+    await create_database()
+
+    # Registration commands
+    Engine.dp.message.register(cmd_start, Filter.Command("start"))
+    Engine.dp.message.register(cmd_menu, Filter.Command("menu"))
+    Engine.dp.message.register(cmd_key, Filter.Command("key"))
+    Engine.dp.message.register(cmd_profile, Filter.Command("profile"))
+    Engine.dp.message.register(cmd_admin_panel, Filter.Command("admin_panel"))
+    Engine.dp.message.register(cmd_seppoku, Filter.Command("seppoku"))
+    Engine.dp.message.register(other_msgs, )
+
+    # Registration callbacks
+    Engine.dp.callback_query.register(model_callbacks, Filter.model)
+    Engine.dp.callback_query.register(block_callbacks, Filter.blocked_model)
+    Engine.dp.callback_query.register(other_callback, )
+
+    # Start bot polling
+    await Engine.dp.start_polling(Engine.bot, skip_updates=True)

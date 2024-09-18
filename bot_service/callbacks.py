@@ -1,5 +1,5 @@
 from aiogram.types import CallbackQuery
-from utils import IF, processing_basic_user_request
+from bot_service.utils import IF, processing_basic_user_request
 
 
 async def model_callbacks(call: CallbackQuery):

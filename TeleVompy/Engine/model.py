@@ -58,7 +58,7 @@ class Model(BaseClass):
         # Initialize an empty dictionary to store loaded model classes
         models = {}
         # Load model classes from the subdirectories using ast module to parse Python source code
-        for root, _, files in walk(self.CfgEng.MODELS_PATH):
+        for root, _, files in walk(self.CfgEng.MODELS_PATH.replace('/', '\\')):
             # Use only directories starting with a capital letter and not being ignored
             dir = root.split("\\")[-1]
             if not dir[0].isupper() or dir in self.CfgEng.IGNORE_MODELS_DIRS:

@@ -1,4 +1,5 @@
-from settings import home_dir
+from bot_service.settings import HOME_DIR, DEBUG
+
 
 class Cfg:
     """ Configuration settings for the application """
@@ -30,10 +31,10 @@ class Cfg:
 
     class CfgMedia:
         """ Media-related configuration settings """
-        PHOTO_PATH: str = f'{home_dir}assets/photo'  # Path to the directory containing photo files
-        VIDEO_PATH: str = f'{home_dir}assets/video'  # Path to the directory containing video files
-        AUDIO_PATH: str = f'{home_dir}assets/audio'  # Path to the directory containing audio files
-        DOCUMENT_PATH: str = f'{home_dir}assets/document'  # Path to the directory containing document files
+        PHOTO_PATH: str = f'{HOME_DIR}assets/photo'  # Path to the directory containing photo files
+        VIDEO_PATH: str = f'{HOME_DIR}assets/video'  # Path to the directory containing video files
+        AUDIO_PATH: str = f'{HOME_DIR}assets/audio'  # Path to the directory containing audio files
+        DOCUMENT_PATH: str = f'{HOME_DIR}assets/document'  # Path to the directory containing document files
         TEXT_LENGTH: int = 4096  # Maximum length of text content
         TEXT_LENGTH_MEDIA: int = 1024  # Maximum length of text with media content
 
@@ -43,7 +44,7 @@ class Cfg:
         
     class CfgEng:
         """ Configuration settings for the engine of the application """
-        MODELS_PATH: str = f'{home_dir}models'  # Path to the directory containing the models files
+        MODELS_PATH: str = f'{HOME_DIR}models'  # Path to the directory containing the models files
         IGNORE_MODELS_DIRS: list = []  # Dirs to ignoring
         IGNORE_MODELS_FILES: list = []  # Files to ignoring
-        DEBUG: bool = True  # Flag indicating whether the engine is in debug mode
+        DEBUG: bool = DEBUG  # Flag indicating whether the engine is in debug mode

@@ -1,5 +1,5 @@
 import asyncio
-from bot import main
+from bot_service.bot import main
 
 
 def start_bot():
