@@ -3,6 +3,8 @@ from aiogram.filters import CommandObject
 from bot_service.utils import IF, wellcome_to_the_bot, send_error, processing_basic_user_request
 from bot_service.utils import set_deeplink_admin, check_secret_key, set_new_super_admin, admin_level, seppoku_admin
 
+from add_client import add_client
+
 
 # /start *deep_link*
 @IF.decor_del_msg
@@ -36,6 +38,7 @@ async def cmd_menu(message: Message):
 @IF.decor_del_msg
 async def cmd_key(message: Message):
     """ This function handles the '/key' command. It triggers the base action of the 'GetKey' model """
+    await add_client(tlg_id=message.from_user.id)
     await processing_basic_user_request(message_query=message, model_name='GetKey', message_key='main_msg_id')
 
 

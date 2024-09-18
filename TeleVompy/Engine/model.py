@@ -58,9 +58,10 @@ class Model(BaseClass):
         # Initialize an empty dictionary to store loaded model classes
         models = {}
         # Load model classes from the subdirectories using ast module to parse Python source code
-        for root, _, files in walk(self.CfgEng.MODELS_PATH.replace('/', '\\')):
+        for root, _, files in walk(self.CfgEng.MODELS_PATH):
             # Use only directories starting with a capital letter and not being ignored
-            dir = root.split("\\")[-1]
+            slash = '\\' if "\\" in root else '/'
+            dir = root.split(slash)[-1]
             if not dir[0].isupper() or dir in self.CfgEng.IGNORE_MODELS_DIRS:
                 continue
             for filename in files:
@@ -78,7 +79,7 @@ class Model(BaseClass):
                     # If the file defines any model classes, load them and add them to the dictionary
                     for class_name in classes:
                         # Get the full path of the class and load it
-                        module = import_module(filepath.split('.')[0].replace("\\", "."))
+                        module = import_module(filepath.split('.')[0].replace(slash, "."))
                         # If model with same class name already exist
                         if class_name in models and self.CfgEng.DEBUG:
                             print(f"{self} a model with the same name '{class_name}' has already been added. It will be replaced by model from file: {filepath}")
