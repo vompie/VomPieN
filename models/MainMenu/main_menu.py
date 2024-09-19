@@ -11,12 +11,14 @@ class MM(Window):
         self.Page.Content.text = 'Ознакомиться с....'
 
     async def constructor(self) -> None:
+        self.self_profile = await get_user(tlg_id=self.User.chat_id)
+
         self.Page.add_button(model='Advantage', row=0, title="Почему мы?")
         self.Page.add_button(model='HowTo', row=0)
         self.Page.add_button(model='Keys', row=1)
         self.Page.add_button(model='Profile', row=1)
+
         # check admin mode
-        self.self_profile = await get_user(tlg_id=self.User.chat_id)
         if self.self_profile and self.self_profile['is_admin'] > 0:
             self.Page.add_button(model='AdminPanel', row=2)
     

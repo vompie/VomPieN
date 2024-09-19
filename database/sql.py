@@ -158,7 +158,7 @@ async def get_user_keys(tlg_id: int, enabled: bool = True) -> bool | aiosqlite.R
 
 
 # get user keys by id all / enabled / disabled
-async def get_user_keys_by_id(id: int, enabled: bool = True) -> bool | aiosqlite.Row:
+async def get_user_keys_by_user_id(id: int, enabled: bool = True) -> bool | aiosqlite.Row:
     user = get_user_by_id(id=id)
     if not user:
         return False

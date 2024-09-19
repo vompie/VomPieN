@@ -116,16 +116,18 @@ async def processing_basic_user_request(
     - action_type (`str` | `None`): Type of Window's Messenger action
     """
 
-    """
-    user_not_select
-    admin_not_select
-    key_not_select
-    cant_demoted_yourself
-    cant_promotion_yourself
-    cant_ban_yourself
-    cant_unban_yourself
-    """
+    # template answers for blocked callbacks
+    answers = {
+        'user_not_select': 'Нужно выбрать пользователя',
+        'admin_not_select': 'Нужно выбрать администратора',
+        'key_not_select': 'Нужно выбрать ключ доступа',
 
+        'cant_demoted': 'Нельзя разжаловать этого пользователя',
+        'cant_promotion': 'Нельзя повысить этого пользователя',
+        'cant_ban': 'Нельзя забанить этого пользователя',
+        'cant_unban': 'Нельзя разабанить этого пользователя',
+        'cant_create_key': 'Вы не можете создать еще один ключ доступа'
+    }
 
     # create user if not exist
     user: dict = await get_user_or_create(message=message_query)
@@ -136,7 +138,7 @@ async def processing_basic_user_request(
 
     # answer on callback
     if isinstance(message_query, CallbackQuery) and answer:
-        await message_query.answer()
+        await message_query.answer(answers.get(answer, ''))
 
     # delete last copy of message if need
     if message_key and not action_type:
@@ -166,7 +168,7 @@ async def set_commands_to_user(message_query: Message | CallbackQuery, is_admin:
     commands = [
         {'command': 'menu', 'description': f'🌐 Меню {BOT_NAME}'},
         {'command': 'profile', 'description': '🧛🏻 Личный кабинет'},
-        {'command': 'get_key', 'description': '🔑 Получить ключ'},
+        {'command': 'new_key', 'description': '🔑 Новый ключ'},
     ]
     if is_admin > 0:
         commands.append({'command': 'admin_panel', 'description': '🦇 Администрирование'})

@@ -9,12 +9,14 @@ class AdminPanel(Window):
         self.Page.Content.title = 'Администрирование'
 
     async def constructor(self) -> None:
-        # check admin mode
         self.self_profile = await get_user(tlg_id=self.User.chat_id)
+
+        # check admin mode
         if not self.self_profile or self.self_profile['is_admin'] < 1:
             self.Action.action_type = 'redirect'
             self.Action.redirect_to = 'MM'
             return
+        
         self.Page.add_button(model='Users', row=0)
         self.Page.add_button(model='Traffic', row=0)
         self.Page.add_button(model='Admins', row=1)

@@ -36,11 +36,11 @@ async def cmd_menu(message: Message):
     await processing_basic_user_request(message_query=message, model_name='MM', message_key='main_msg_id', set_commands=True)
 
 
-# /get_key
+# /new_key
 @IF.decor_del_msg
-async def cmd_get_key(message: Message):
-    """ This function handles the '/get_key' command. It triggers the base action of the 'GetKey' model """
-    await processing_basic_user_request(message_query=message, model_name='GetKey', message_key='main_msg_id')
+async def cmd_new_key(message: Message):
+    """ This function handles the '/new_key' command. It triggers the base action of the 'NewKey' model """
+    await processing_basic_user_request(message_query=message, model_name='NewKey', message_key='main_msg_id')
 
 
 # /profile

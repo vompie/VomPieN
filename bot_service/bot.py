@@ -9,7 +9,7 @@ Filter = Filters()
 
 # Main loop
 async def main():
-    from bot_service.commands import cmd_start, cmd_menu, cmd_get_key, cmd_profile, cmd_admin_panel, cmd_seppoku, other_msgs
+    from bot_service.commands import cmd_start, cmd_menu, cmd_new_key, cmd_profile, cmd_admin_panel, cmd_seppoku, other_msgs
     from bot_service.callbacks import model_callbacks, block_callbacks, other_callback
     from database.sql import create_database
 
@@ -19,7 +19,7 @@ async def main():
     # Registration commands
     Engine.dp.message.register(cmd_start, Filter.Command("start"))
     Engine.dp.message.register(cmd_menu, Filter.Command("menu"))
-    Engine.dp.message.register(cmd_get_key, Filter.Command("get_key"))
+    Engine.dp.message.register(cmd_new_key, Filter.Command("new_key"))
     Engine.dp.message.register(cmd_profile, Filter.Command("profile"))
     # Admin commands
     Engine.dp.message.register(cmd_admin_panel, Filter.Command("admin_panel"))
