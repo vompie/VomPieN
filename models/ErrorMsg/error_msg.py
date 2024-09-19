@@ -11,4 +11,3 @@ class ErrorMsg(Window):
     async def constructor(self) -> None:
         self.Page.add_button(model='BNah', row=0)
         self.Page.add_button(model='BYes', row=0)
-    

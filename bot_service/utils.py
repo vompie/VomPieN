@@ -44,9 +44,9 @@ async def get_user_or_create(message: Message) -> object:
     return user
 
 
-async def send_error(message_query: Message | CallbackQuery) -> None:
+async def send_error(message_query: Message | CallbackQuery, model: str = 'ErrorMsg') -> None:
     """ This function sends an error message """
-    window: Window = Models["ErrorMsg"](user=User(message_query))
+    window: Window = Models[model](user=User(message_query))
     await window.action()
     del window
 
@@ -119,7 +119,11 @@ async def processing_basic_user_request(
     """
     user_not_select
     admin_not_select
-    can_demoted_yourself
+    key_not_select
+    cant_demoted_yourself
+    cant_promotion_yourself
+    cant_ban_yourself
+    cant_unban_yourself
     """
 
 
@@ -128,7 +132,7 @@ async def processing_basic_user_request(
 
     # update commands
     if set_commands or user['is_admin'] == -1:
-        await set_commands_to_user(message_query=message_query, is_admin=user['is_admin'])
+        await set_commands_to_user(message_query=message_query, is_admin=user['is_admin'], is_banned=user['is_banned'])
 
     # answer on callback
     if isinstance(message_query, CallbackQuery) and answer:
@@ -137,6 +141,11 @@ async def processing_basic_user_request(
     # delete last copy of message if need
     if message_key and not action_type:
         await IF.delete_message(chat_id=user['tlg_id'], msg_id=user[message_key])
+
+    # if user is banned
+    if user['is_banned']:
+        await send_error(message_query=message_query, model='BanMsg')
+        return
 
     # send window
     if model_name and message_query:
@@ -152,15 +161,17 @@ async def processing_basic_user_request(
         del window
 
 
-async def set_commands_to_user(message_query: Message | CallbackQuery, is_admin: bool = False) -> None:
+async def set_commands_to_user(message_query: Message | CallbackQuery, is_admin: bool = False, is_banned: bool = False) -> None:
     """ This function sets commands to the bot """
     commands = [
         {'command': 'menu', 'description': f'🌐 Меню {BOT_NAME}'},
-        {'command': 'key', 'description': '🔑 Получить ключ'},
         {'command': 'profile', 'description': '🧛🏻 Личный кабинет'},
+        {'command': 'get_key', 'description': '🔑 Получить ключ'},
     ]
     if is_admin > 0:
         commands.append({'command': 'admin_panel', 'description': '🦇 Администрирование'})
+    if is_banned:
+        commands = [{'command': 'menu', 'description': '☠️ Заблокирован'}]    
     await IF.set_commands(message_query=message_query, commands=commands)
     if is_admin == -1:
         await unset_admin(tlg_id=message_query.from_user.id)

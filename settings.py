@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
 
 DEBUG: bool = True
+MAX_CLIENT_KEYS: int = 2
 
 PROJECT_DIR: str = os.getenv("PROJECT_DIR") if os.getenv("PROJECT_DIR") else ''
 XRAY_DIR: str = os.getenv("XRAY_DIR") if os.getenv("PROJECT_DIR") else ''

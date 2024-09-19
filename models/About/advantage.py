@@ -11,5 +11,5 @@ class Advantage(Window):
 
     async def constructor(self) -> None:
         self.Page.add_button(model='BBck', row=0, title='В меню', callback=self.CallBack.create(dad='MM'))
-        self.Page.add_button(model='GetKey', row=0)
+        # self.Page.add_button(model='GetKey', row=0)
     

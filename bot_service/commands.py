@@ -3,7 +3,7 @@ from aiogram.filters import CommandObject
 from bot_service.utils import IF, wellcome_to_the_bot, send_error, processing_basic_user_request
 from bot_service.utils import set_deeplink_admin, check_secret_key, set_new_super_admin, admin_level, seppoku_admin
 
-from add_client import add_client
+from settings import BOT_NAME
 
 
 # /start *deep_link*
@@ -13,6 +13,7 @@ async def cmd_start_deeplink(message: Message, command: CommandObject):
     user = await wellcome_to_the_bot(message=message)
     if not user:
         return await send_error(message_query=message)
+    await message.answer(text=f'Добро пожаловать в {BOT_NAME} 🧛🏻')
     await set_deeplink_admin(message=message, command=command)
     await cmd_menu(message=message)
 
@@ -24,6 +25,7 @@ async def cmd_start(message: Message):
     user = await wellcome_to_the_bot(message=message)
     if not user:
         return await send_error(message_query=message)
+    await message.answer(text=f'Добро пожаловать в {BOT_NAME} 🧛🏻')
     await cmd_menu(message=message)
 
 
@@ -34,11 +36,10 @@ async def cmd_menu(message: Message):
     await processing_basic_user_request(message_query=message, model_name='MM', message_key='main_msg_id', set_commands=True)
 
 
-# /key
+# /get_key
 @IF.decor_del_msg
-async def cmd_key(message: Message):
-    """ This function handles the '/key' command. It triggers the base action of the 'GetKey' model """
-    await add_client(tlg_id=message.from_user.id)
+async def cmd_get_key(message: Message):
+    """ This function handles the '/get_key' command. It triggers the base action of the 'GetKey' model """
     await processing_basic_user_request(message_query=message, model_name='GetKey', message_key='main_msg_id')
 
 

@@ -14,6 +14,7 @@ async def create_database() -> None:
                     username TEXT DEFAULT '', 
                     is_admin INTEGER DEFAULT 0,
                     main_msg_id INTEGER DEFAULT 0,
+                    is_banned INTEGER DEFAULT 0,
                     created_at TEXT DEFAULT CURRENT_TIMESTAMP 
                 )'''
             )
@@ -26,7 +27,7 @@ async def create_database() -> None:
                     email TEXT,
                     level INTEGER DEFAULT 1,
                     key TEXT DEFAULT '',
-                    enabled INTEGER DEFAULT 0, 
+                    is_enabled INTEGER DEFAULT 0, 
                     created_at TEXT DEFAULT CURRENT_TIMESTAMP 
                 )'''
             )
@@ -37,7 +38,6 @@ async def create_database() -> None:
         if DEBUG: print(text)
         return None
     
-
 # execute query
 async def execute_query(sql_query: str, data: tuple = None, action: str = None) -> bool | int:
     try:
@@ -56,7 +56,6 @@ async def execute_query(sql_query: str, data: tuple = None, action: str = None) 
         logging.error(text)
         if DEBUG: print(text)
         return False
-
 
 # execute selection query
 async def execute_selection_query(sql_query: str, data: tuple = None) -> bool | list[aiosqlite.Row]:
@@ -97,6 +96,11 @@ async def get_user_by_id(id: int) -> bool | aiosqlite.Row:
     user = await execute_selection_query(sql_query, (id, ))
     return user[0] if user else False
 
+# get all users
+async def get_users(admins: bool = False) -> bool | aiosqlite.Row:
+    sign = '>' if admins else '<='
+    return await execute_selection_query(f"SELECT * FROM users WHERE is_admin {sign} 0", ())
+
 # update user   
 async def update_user(tlg_id: int, columns: list, values: list) -> bool:
     set_clause = ", ".join([f"{column} = ?" for column in columns])
@@ -109,16 +113,11 @@ async def update_user_by_id(id: int, columns: list, values: list) -> bool:
     sql_query = f"UPDATE users SET {set_clause} WHERE id = ?"
     return await execute_query(sql_query, (*values, id))
 
-# get all users
-async def get_users(admins: bool = False) -> bool | aiosqlite.Row:
-    sign = '>' if admins else '<='
-    return await execute_selection_query(f"SELECT * FROM users WHERE is_admin {sign} 0", ())
-
 
 
 # add new client
 async def add_new_client(tlg_id: int, uuid: str, email: str, level: int, enabled: bool = True) -> bool | int:
-    sql_query = f"INSERT INTO clients (tlg_id, uuid, email, level, enabled) VALUES (?, ?, ?, ?, ?)"
+    sql_query = f"INSERT INTO clients (tlg_id, uuid, email, level, is_enabled) VALUES (?, ?, ?, ?, ?)"
     return await execute_query(sql_query, (tlg_id, uuid, email, level, enabled), 'insert')
 
 # get all / disabled / enabled clients
@@ -128,9 +127,9 @@ async def get_clients(type: bool | None = True) -> bool | aiosqlite.Row:
         return await execute_selection_query("SELECT * FROM clients", ())
     # get disabled clients
     if not type:
-        return await execute_selection_query("SELECT * FROM clients WHERE enabled = 0", ())
+        return await execute_selection_query("SELECT * FROM clients WHERE is_enabled = 0", ())
     # get enabled clients
-    return await execute_selection_query("SELECT * FROM clients WHERE enabled = 1", ())
+    return await execute_selection_query("SELECT * FROM clients WHERE is_enabled = 1", ())
 
 # update client   
 async def update_client(tlg_id: int, columns: list, values: list) -> bool:
@@ -138,12 +137,34 @@ async def update_client(tlg_id: int, columns: list, values: list) -> bool:
     sql_query = f"UPDATE clients SET {set_clause} WHERE tlg_id = ?"
     return await execute_query(sql_query, (*values, tlg_id))
 
+# update client by id
+async def update_client_by_id(id: int, columns: list, values: list) -> bool:
+    set_clause = ", ".join([f"{column} = ?" for column in columns])
+    sql_query = f"UPDATE clients SET {set_clause} WHERE id = ?"
+    return await execute_query(sql_query, (*values, id))
 
+# delete client by id
+async def delete_client_by_id(id: int) -> bool:
+    sql_query = f"DELETE FROM clients WHERE id = ?"
+    return await execute_query(sql_query, (id,))
 
 # get user keys all / enabled / disabled
 async def get_user_keys(tlg_id: int, enabled: bool = True) -> bool | aiosqlite.Row:
-    sql_query = f"SELECT * FROM clients WHERE tlg_id = ? AND enabled = ?"
+    sql_query = f"SELECT * FROM clients WHERE tlg_id = ? AND is_enabled = ?"
     if enabled is None:
         sql_query = f"SELECT * FROM clients WHERE tlg_id = ?"
         return await execute_selection_query(sql_query, (tlg_id, ))
     return await execute_selection_query(sql_query, (tlg_id, enabled))  
+
+
+# get user keys by id all / enabled / disabled
+async def get_user_keys_by_id(id: int, enabled: bool = True) -> bool | aiosqlite.Row:
+    user = get_user_by_id(id=id)
+    if not user:
+        return False
+    tlg_id = user['tlg_id']
+    sql_query = f"SELECT * FROM clients WHERE tlg_id = ? AND is_enabled = ?"
+    if enabled is None:
+        sql_query = f"SELECT * FROM clients WHERE tlg_id = ?"
+        return await execute_selection_query(sql_query, (tlg_id, ))
+    return await execute_selection_query(sql_query, (tlg_id, enabled)) 

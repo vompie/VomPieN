@@ -2,7 +2,7 @@ import os, shutil
 from json import loads, dumps
 from uuid import uuid1
 
-from database.sql import add_new_client, get_clients
+from database.sql import add_new_client, get_clients, delete_client_by_id
 
 
 def get_default_vless(file: str) -> dict:
@@ -34,6 +34,10 @@ def create_client(tlg_id: str, level: int) -> dict:
 async def save_client(tlg_id: int, client: dict, enabled: bool = True) -> bool | int:
     """ Save a new client to the database """
     return await add_new_client(tlg_id=tlg_id, uuid=client['id'], email=client['email'], level=client['level'], enabled=enabled)
+
+async def delete_client(id: int) -> bool:
+    """ Delete a client from the database """
+    return await delete_client_by_id(id=id)
 
 async def enabled_clients() -> bool | object:
     """ Get enabled clients """
