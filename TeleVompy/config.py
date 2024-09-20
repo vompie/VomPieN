@@ -1,6 +1,3 @@
-from settings import DEBUG
-
-
 class Cfg:
     """ Configuration settings for the application """
 
@@ -16,6 +13,7 @@ class Cfg:
         SMILE_POINTER: str = '👉🏻' # Smile representing a pointer
         EMOJI_NUMBERS: list[str] = ['0️⃣', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟']  # List of emoji numbers
         EFFECT: str = ''  # Effect applied to sending a message
+        SHOW_LINK_PREVIEW: bool = False # Show link preview in the message
 
     class CfgContent:
         """ Content-related configuration settings """
@@ -25,16 +23,24 @@ class Cfg:
         TITLE: str = "<b>{title}</b>"  # Template for the title of a message
         TEXT: str = "\n{text}"  # Template for the text of a message
 
+    class CfgMessageEffect:
+        """ Effect-related configuration settings """
+        FIRE: str = "5104841245755180586" # 🔥
+        LIKE: str = "5107584321108051014" # 👍
+        DISLIKE: str = "5104858069142078462" # 👎
+        HEART: str = "5159385139981059251" # ❤️
+        PETARD: str = "5046509860389126442" # 🎉
+        POO: str = "5046589136895476101" # 💩
+
     class CfgAction:
         """ Window-related configuration settings """
         DEFAULT_ACTION: str = 'edit'  # Default action type
 
     class CfgMedia:
-        """ Media-related configuration settings """
-        PHOTO_PATH: str = f'assets/photo'  # Path to the directory containing photo files
-        VIDEO_PATH: str = f'assets/video'  # Path to the directory containing video files
-        AUDIO_PATH: str = f'assets/audio'  # Path to the directory containing audio files
-        DOCUMENT_PATH: str = f'assets/document'  # Path to the directory containing document files
+        PHOTO_PATH: str = 'assets/photo'  # Path to the directory containing photo files
+        VIDEO_PATH: str = 'assets/video'  # Path to the directory containing video files
+        AUDIO_PATH: str = 'assets/audio'  # Path to the directory containing audio files
+        DOCUMENT_PATH: str = 'assets/document'  # Path to the directory containing document files
         TEXT_LENGTH: int = 4096  # Maximum length of text content
         TEXT_LENGTH_MEDIA: int = 1024  # Maximum length of text with media content
 
@@ -44,7 +50,7 @@ class Cfg:
         
     class CfgEng:
         """ Configuration settings for the engine of the application """
-        MODELS_PATH: str = f'models'  # Path to the directory containing the models files
+        MODELS_PATH: str = 'models'  # Path to the directory containing the models files
         IGNORE_MODELS_DIRS: list = []  # Dirs to ignoring
         IGNORE_MODELS_FILES: list = []  # Files to ignoring
-        DEBUG: bool = DEBUG  # Flag indicating whether the engine is in debug mode
+        DEBUG: bool = True  # Flag indicating whether the engine is in debug mode

@@ -15,35 +15,6 @@ Models = Model().models
 IF = Interface()
 
 
-def extract_payload(command: CommandObject) -> str:
-    """ This function processes the command with deeplink and returns the payload """
-    return decode_payload(command.args)
-
-
-async def set_deeplink_admin(message: Message, command: CommandObject) -> None:
-    """ This function set admin level by payload """
-    token = extract_payload(command=command)
-    # if token_user_id.level_admin > 1:
-    # await set_new_admin(tlg_id=message.from_user.id)
-
-
-async def wellcome_to_the_bot(message: Message) -> bool | object:
-    """ This function handles the wellcome to the game process """
-    # get base information
-    telegram_id = message.from_user.id
-    username = message.from_user.username if message.from_user.username else ''
-    # create user
-    user = await create_user(tlg_id=telegram_id, username=username)
-    return user
-
-
-async def get_user_or_create(message: Message) -> object:
-    """ This function gets user or creates new user """
-    await wellcome_to_the_bot(message=message)
-    user = await get_user(tlg_id=message.from_user.id)
-    return user
-
-
 async def send_error(message_query: Message | CallbackQuery, model: str = 'ErrorMsg') -> None:
     """ This function sends an error message """
     window: Window = Models[model](user=User(message_query))
@@ -51,48 +22,59 @@ async def send_error(message_query: Message | CallbackQuery, model: str = 'Error
     del window
 
 
-async def check_secret_key(message_query: Message) -> bool:
+def extract_payload(command: CommandObject) -> str:
+    """ This function processes the command with deeplink and returns the payload """
+    return decode_payload(command.args)
+
+async def set_deeplink_admin(message: Message, command: CommandObject) -> None:
+    """ This function set admin level by payload """
+    token = extract_payload(command=command)
+    # if token_user_id.level_admin > 1:
+    # await set_new_admin(tlg_id=message.from_user.id)
+
+async def get_user_or_create(message_query: Message | CallbackQuery) -> object:
+    """ This function get user or create new user """
+    # get base information
+    telegram_id = message_query.from_user.id
+    username = message_query.from_user.username if message_query.from_user.username else ''
+    user = await get_user(tlg_id=message_query.from_user.id)
+    if not user:
+        await create_user(tlg_id=telegram_id, username=username)
+    user = await get_user(tlg_id=message_query.from_user.id)
+    return user
+
+
+async def check_secret_key(message: Message) -> bool:
     """ This function checks admin secret key """
     try:
-        if message_query.text[0] != '*': 
+        if message.text[0] != '*': 
             return False
-        return message_query.text[1:] == ADMIN_SECRET_KEY
+        return message.text[1:] == ADMIN_SECRET_KEY
     except Exception as e:
         return False
 
-
-async def set_new_super_admin(tlg_id: int) -> bool:
+async def set_new_super_admin(message: Message) -> bool:
     """ This function sets new super admin user """
-    return await update_user(tlg_id=tlg_id, columns=['is_admin'], values=[2])
-
-
-async def set_new_admin(tlg_id: int) -> bool:
-    """ This function sets new admin user """
-    return await update_user(tlg_id=tlg_id, columns=['is_admin'], values=[1])
-
-
-async def demoted_admin(tlg_id: int) -> bool:
-    """ This function demotes admin user """
-    return await update_user(tlg_id=tlg_id, columns=['is_admin'], values=[-1])
-
-
-async def unset_admin(tlg_id: int) -> bool:
-    """ This function unsets admin status """
-    return await update_user(tlg_id=tlg_id, columns=['is_admin'], values=[0])
+    user = await get_user_or_create(message=message)
+    if user['is_banned']:
+        return
+    return await update_user(tlg_id=user['tlg_id'], columns=['user_lvl'], values=[2])
 
 
 async def admin_level(message_query: Message | CallbackQuery) -> bool | int:
     """ This function checks if user is admin """
-    user = await get_user(message_query.from_user.id)
-    return user['is_admin'] if user else False
-
+    user = await get_user_or_create(message_query)
+    return user['user_lvl'] if user else False
 
 async def seppoku_admin(message_query: Message) -> bool:
     """ This function make seppoku """
-    user = await get_user_or_create(message=message_query)
-    if user['is_admin'] > 0:
-        return await demoted_admin(tlg_id=user['tlg_id'])
+    if await admin_level(message_query=message_query) > 0:
+        return await update_user(tlg_id=message_query.from_user.id, columns=['user_lvl'], values=[-1])
     return False
+
+async def unset_admin(tlg_id: int) -> bool:
+    """ This function unsets admin status """
+    return await update_user(tlg_id=tlg_id, columns=['user_lvl'], values=[0])
 
 
 async def processing_basic_user_request(
@@ -104,7 +86,7 @@ async def processing_basic_user_request(
         action_type: str | None = None
     ) -> None:
     """
-    This function processes basic user requests (like '/start', '/profile', '/key', etc. and all callbacks)
+    This function processes basic user requests ('/start', '/menu', '/profile', '/new_key', '/seppoku', '/admin_panel' and all callbacks)
 
     Parameters
     ----------
@@ -118,6 +100,8 @@ async def processing_basic_user_request(
 
     # template answers for blocked callbacks
     answers = {
+        'internal_error': 'Пумпумпум... ошибочка вышла',
+
         'user_not_select': 'Нужно выбрать пользователя',
         'admin_not_select': 'Нужно выбрать администратора',
         'key_not_select': 'Нужно выбрать ключ доступа',
@@ -125,19 +109,19 @@ async def processing_basic_user_request(
         'cant_demoted': 'Нельзя разжаловать этого пользователя',
         'cant_promotion': 'Нельзя повысить этого пользователя',
         'cant_ban': 'Нельзя забанить этого пользователя',
-        'cant_unban': 'Нельзя разабанить этого пользователя',
-        'cant_create_key': 'Вы не можете создать еще один ключ доступа'
+        'cant_unban': 'Нельзя разбанить этого пользователя',
+        'cant_create_key': 'Нельзя создать еще один ключ доступа'
     }
 
     # create user if not exist
-    user: dict = await get_user_or_create(message=message_query)
+    user: dict = await get_user_or_create(message_query=message_query)
 
     # update commands
-    if set_commands or user['is_admin'] == -1:
-        await set_commands_to_user(message_query=message_query, is_admin=user['is_admin'], is_banned=user['is_banned'])
+    if set_commands or user['user_lvl'] == -1:
+        await set_commands_to_user(message_query=message_query, user_lvl=user['user_lvl'], is_banned=user['is_banned'])
 
     # answer on callback
-    if isinstance(message_query, CallbackQuery) and answer:
+    if isinstance(message_query, CallbackQuery):
         await message_query.answer(answers.get(answer, ''))
 
     # delete last copy of message if need
@@ -163,17 +147,17 @@ async def processing_basic_user_request(
         del window
 
 
-async def set_commands_to_user(message_query: Message | CallbackQuery, is_admin: bool = False, is_banned: bool = False) -> None:
+async def set_commands_to_user(message_query: Message | CallbackQuery, user_lvl: bool = False, is_banned: bool = False) -> None:
     """ This function sets commands to the bot """
     commands = [
         {'command': 'menu', 'description': f'🌐 Меню {BOT_NAME}'},
         {'command': 'profile', 'description': '🧛🏻 Личный кабинет'},
         {'command': 'new_key', 'description': '🔑 Новый ключ'},
     ]
-    if is_admin > 0:
+    if user_lvl > 0:
         commands.append({'command': 'admin_panel', 'description': '🦇 Администрирование'})
     if is_banned:
         commands = [{'command': 'menu', 'description': '☠️ Заблокирован'}]    
     await IF.set_commands(message_query=message_query, commands=commands)
-    if is_admin == -1:
+    if user_lvl == -1:
         await unset_admin(tlg_id=message_query.from_user.id)

@@ -27,6 +27,7 @@ class Page(BaseClass):
         self.smile_negative: str = self.CfgPage.SMILE_NEGATIVE # smile representing a negative action
         self.smile_block: str = self.CfgPage.SMILE_BLOCKED # smile representing a blocked action
         self.effect: str = self.CfgPage.EFFECT # message sending effect
+        self.show_link_preview: bool = self.CfgPage.SHOW_LINK_PREVIEW # link preview in the message
         self.state: bool = self.CfgPage.STATE # flag indicating the state of the window
         self.block: bool = self.CfgPage.BLOCKED # flag indicating whether the window is blocked
         self.answer: str = self.CfgPage.ANSWER # text to answer on callback for block button

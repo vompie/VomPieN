@@ -1,6 +1,8 @@
 from .base_class import BaseClass
 from .engine import SingleTonBotEngine
 
+from aiogram.types import LinkPreviewOptions
+
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -73,7 +75,8 @@ class Messenger(BaseClass):
                 message = await self.__bot.send_message(
                     chat_id=self.__User.chat_id, text=self.__Content.content,
                     reply_markup=self.__Page.keyboard, 
-                    message_effect_id=self.__Page.effect, parse_mode=self.__Content.parse_mode)
+                    message_effect_id=self.__Page.effect, parse_mode=self.__Content.parse_mode,
+                    link_preview_options=LinkPreviewOptions(is_disabled=not self.__Page.show_link_preview))
             self.__User.msg_id = message.message_id  # update message_id
         except Exception as e:
             if self.CfgEng.DEBUG : print(f"{self} send message error: {e}")
@@ -100,7 +103,8 @@ class Messenger(BaseClass):
                     message_id=self.__User.msg_id,  
                     text=self.__Content.content,
                     reply_markup=self.__Page.keyboard,
-                    parse_mode=self.__Content.parse_mode
+                    parse_mode=self.__Content.parse_mode,
+                    link_preview_options=LinkPreviewOptions(is_disabled=not self.__Page.show_link_preview)
                 )
         except Exception as e:
             """ 

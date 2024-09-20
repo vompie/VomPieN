@@ -5,14 +5,14 @@ from database.sql import get_users, get_user
 class Admins(Window):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.Page.smile = '🔆'
+        self.Page.smile = '🧙🏻'
         self.Page.Content.title = 'Администраторы'
 
     async def constructor(self) -> None:
         self.self_profile = await get_user(tlg_id=self.User.chat_id)
 
         # check admin mode
-        if not self.self_profile or self.self_profile['is_admin'] < 1:
+        if not self.self_profile or self.self_profile['user_lvl'] < 1:
             self.Action.action_type = 'redirect'
             self.Action.redirect_to = 'MM'
             return
@@ -49,7 +49,8 @@ class Admins(Window):
 
     def content_setter(self, item: dict) -> tuple[str, str]:
         header = f"@{item['username']}" if item['username'] else item['tlg_id']
-        footer = f"Уровень: {item['is_admin']}\nЗарегистрирован: {item['created_at']}"
+        footer = f"Уровень: {item['user_lvl']}\nЗарегистрирован: {item['created_at']}"
+        # привел людей: ...
         return header, footer
 
     def id_getter(self, item: dict) -> None:

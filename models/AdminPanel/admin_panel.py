@@ -12,7 +12,7 @@ class AdminPanel(Window):
         self.self_profile = await get_user(tlg_id=self.User.chat_id)
 
         # check admin mode
-        if not self.self_profile or self.self_profile['is_admin'] < 1:
+        if not self.self_profile or self.self_profile['user_lvl'] < 1:
             self.Action.action_type = 'redirect'
             self.Action.redirect_to = 'MM'
             return

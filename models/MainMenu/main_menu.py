@@ -19,6 +19,6 @@ class MM(Window):
         self.Page.add_button(model='Profile', row=1)
 
         # check admin mode
-        if self.self_profile and self.self_profile['is_admin'] > 0:
+        if self.self_profile and self.self_profile['user_lvl'] > 0:
             self.Page.add_button(model='AdminPanel', row=2)
     

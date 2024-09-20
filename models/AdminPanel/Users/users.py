@@ -48,6 +48,18 @@ class Users(Window):
         header = f"@{item['username']}" if item['username'] else item['tlg_id']
         header = f"{header} (забанен)" if item['is_banned'] else header
         footer = f"Зарегистрирован: {item['created_at']}"
+
+        # username = f"@{item['username']}" if item['username'] else item['tlg_id']
+        # level = ''
+        # if user['is_admin'] == -1:
+        #     level = '(разжалован)'
+        # elif user['is_admin'] > 0:
+        #     level = f"(администратор {user['is_admin']}ур.)"
+        # elif user['is_banned'] == 1:
+        #     level = '(забанен)'
+        # self.Page.Content.title =  f"{username} {level}"
+
+        # привел людей: ...
         return header, footer
 
     def id_getter(self, item: dict) -> None:

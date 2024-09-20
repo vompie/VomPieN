@@ -1,5 +1,5 @@
 from TeleVompy.Interface.window import Window
-from database.sql import get_user_by_id, get_user_keys, get_user, update_user_by_id, update_client
+from database.sql import get_user_by_id, get_user_keys, get_user, update_user_by_id, update_client, update_client_by_tlg_id
 
 
 class Profile(Window):
@@ -79,7 +79,7 @@ class BanUser(Window):
         if not user:
             return
         await update_user_by_id(id=self.relayed_payload.Us, columns=['is_banned', 'is_admin'], values=[1, 0])
-        await update_client(tlg_id=user['tlg_id'], columns=['is_enabled'], values=[0])
+        await update_client_by_tlg_id(tlg_id=user['tlg_id'], columns=['is_enabled'], values=[0])
 
 class UnBanUser(Window):
     def __init__(self, *args, **kwargs):
@@ -93,7 +93,7 @@ class UnBanUser(Window):
         if not user:
             return
         await update_user_by_id(id=self.relayed_payload.Us, columns=['is_banned'], values=[0])
-        await update_client(tlg_id=user['tlg_id'], columns=['is_enabled'], values=[1])
+        await update_client_by_tlg_id(tlg_id=user['tlg_id'], columns=['is_enabled'], values=[1])
         
 
 class PromotionAdmin(Window):
