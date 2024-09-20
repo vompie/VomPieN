@@ -2,21 +2,19 @@ import os, shutil, aiofiles
 from json import loads, dumps
 from uuid import uuid1
 
-from database.sql import create_database, add_new_client, get_clients, delete_client
+from database.sql import create_database, add_new_client, get_clients, delete_client, update_client, update_client_by_tlg_id
 
 
 async def prepare_server(file: str) -> dict:
     """ Prepare the server """
-    # create database
     await create_database()
-    # get default vless
     return await get_default_vless(file=file)
 
 
 async def get_default_vless(file: str) -> dict:
     """ Get the default vless data """
     async with aiofiles.open(file, 'r') as f:
-        inbounds = loads(f.read())
+        inbounds = loads(await f.read())
     vless = inbounds['inbounds'][0]
     """ Set the default secret vless parameters """
     vless['listen'] = os.getenv('SERVER_IP')
@@ -28,16 +26,16 @@ async def get_default_vless(file: str) -> dict:
     vless['streamSettings']['realitySettings']['privateKey'] = os.getenv('REALITY_PRIVATE_KEY')
     return vless
 
-async def make_and_save_vless(vless: dict, old_file: str, new_file: str) -> bool:
+async def make_and_save_vless(vless: dict, from_file: str, to_file: str) -> bool:
     """ Make a new vless configuration file and save it """
     # make new vless
     vless: dict = await make_new_vless(vless=vless, enabled=True)
     # copy last vless file
-    copy_result: bool = await make_copy_vless(from_file=old_file, to_file=new_file)
+    copy_result: bool = await make_copy_vless(from_file=from_file, to_file=to_file)
     if not copy_result:
         return False
     # save new vless file
-    save_result: bool = await save_vless_file(vless=vless, file=new_file)
+    save_result: bool = await save_vless_file(vless=vless, file=to_file)
     if not save_result:
         return False
     return True
@@ -50,6 +48,14 @@ async def create_and_save_client(tlg_id: str, level: int, enabled: bool = True) 
 async def delete_client_by_id(id: int) -> bool:
     """ Delete a client from the database """
     return await delete_client(id=id)
+
+async def upd_client(id: int, columns: list, values: list) -> bool:
+    """ Update a client status in the database """
+    return await update_client(id=id, columns=columns, values=values)
+
+async def upd_client_by_tlg_id(tlg_id: int, columns: list, values: list) -> bool:
+    """ Update a client status in the database """
+    return await update_client_by_tlg_id(tlg_id=tlg_id, columns=columns, values=values)       
 
 
 async def make_new_vless(vless: dict, enabled: bool | None = True) -> dict:
@@ -79,6 +85,7 @@ async def save_vless_file(vless: dict, file: str) -> bool:
 async def reboot_server() -> bool:
     # restart xray
     # check status
+    print('Nu tipa OK')
     return True
     # back copy of last vless file
     # copy_result: bool = make_copy_vless(old_file=LASTCOPY_VLESS_FILE, new_file=NEW_VLESS_FILE)

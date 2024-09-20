@@ -1,4 +1,5 @@
 from TeleVompy.Interface.window import Window
+
 from database.sql import get_users, get_user
 
 
@@ -31,6 +32,7 @@ class Admins(Window):
         if self.relayed_payload.Us:
             self.relayed_payload.sl = self.relayed_payload.Us
             self.relayed_payload_del_attr(attr='Us')
+            
         # pagination
         self.Pagination.add(dataset=admins, content_setter=self.content_setter, id_getter=self.id_getter)
 
@@ -39,18 +41,21 @@ class Admins(Window):
         callback.payload.Us = self.relayed_payload.sl
         callback.payload.Bt = self.name
         callback.payload.del_attr(attr='sl')
-
-        # new admin button
-        # self.Page.add_button(model='Profile', row=1, title='Профиль', callback=callback, block=(not self.relayed_payload.sl), answer='admin_not_select')
         
         # info button
         self.Page.add_button(model='Profile', row=1, title='Профиль', callback=callback, block=(not self.relayed_payload.sl), answer='admin_not_select')
 
 
     def content_setter(self, item: dict) -> tuple[str, str]:
-        header = f"@{item['username']}" if item['username'] else item['tlg_id']
-        footer = f"Уровень: {item['user_lvl']}\nЗарегистрирован: {item['created_at']}"
-        # привел людей: ...
+        # header
+        username = f"@{item['username']}" if item['username'] else item['tlg_id']
+        level = f"{item['user_lvl']} уровень"
+        header = f"{username} ({level})"
+        # footer
+        invites = f"Друзей приведено: {item['referals']}"
+        created_at = f"Зарегистрирован: {item['created_at']}"
+        footer = f"{invites}\n{created_at}"
+        footer = self.Page.Content.html(footer).code()
         return header, footer
 
     def id_getter(self, item: dict) -> None:

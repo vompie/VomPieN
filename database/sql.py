@@ -1,4 +1,5 @@
-import aiosqlite, logging
+import aiosqlite
+
 from settings import DEBUG, DB_FILE
 
 
@@ -15,6 +16,17 @@ async def create_database() -> None:
                     user_lvl INTEGER DEFAULT 0,
                     main_msg_id INTEGER DEFAULT 0,
                     is_banned INTEGER DEFAULT 0,
+                    referals INTEGER DEFAULT 0,
+                    created_at TEXT DEFAULT CURRENT_TIMESTAMP 
+                )'''
+            )
+            # create table deeplinks
+            await db.execute(f'''
+                CREATE TABLE IF NOT EXISTS deeplinks (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    tlg_id INTEGER,
+                    type TEXT, 
+                    is_used INTEGER DEFAULT 0,
                     created_at TEXT DEFAULT CURRENT_TIMESTAMP 
                 )'''
             )
@@ -34,7 +46,6 @@ async def create_database() -> None:
             await db.commit()
     except Exception as e:
         text = f'SQL: create database error: {e}'
-        logging.error(text)
         if DEBUG: print(text)
         return None
     
@@ -53,7 +64,6 @@ async def execute_query(sql_query: str, data: tuple = None, action: str = None) 
         return True
     except Exception as e:
         text = f'SQL: execute query error: {e}'
-        logging.error(text)
         if DEBUG: print(text)
         return False
 
@@ -71,15 +81,14 @@ async def execute_selection_query(sql_query: str, data: tuple = None) -> bool | 
         return rows
     except Exception as e:
         text = f'SQL: execute selection query error: {e}'
-        logging.error(text)
         if DEBUG: print(text)
 
 
 
 # create user
-async def create_user(tlg_id: int, username: str = '', user_lvl: int = 0) -> bool | int:
-    sql_query = f"INSERT INTO users (tlg_id, username, user_lvl) VALUES (?, ?, ?)"
-    return await execute_query(sql_query, (tlg_id, username, user_lvl), 'insert')
+async def create_user(tlg_id: int, username: str = '') -> bool | int:
+    sql_query = f"INSERT INTO users (tlg_id, username) VALUES (?, ?)"
+    return await execute_query(sql_query, (tlg_id, username), 'insert')
 
 # get user
 async def get_user(tlg_id: int) -> bool | aiosqlite.Row:
@@ -112,10 +121,40 @@ async def update_user_by_id(id: int, columns: list, values: list) -> bool:
 
 
 
+# create deeplink
+async def create_deeplink(tlg_id: int, type: str) -> bool | int:
+    sql_query = f"INSERT INTO deeplinks (tlg_id, type) VALUES (?, ?)"
+    return await execute_query(sql_query, (tlg_id, type), 'insert')
+
+# get deeplink
+async def get_deeplink(id: int) -> bool | aiosqlite.Row:
+    sql_query = f"SELECT * FROM deeplinks WHERE id = ?"
+    deeplink = await execute_selection_query(sql_query, (id, ))
+    return deeplink[0] if deeplink else False
+
+# update deeplink
+async def update_deeplink(id: int, columns: list, values: list) -> bool:
+    set_clause = ", ".join([f"{column} = ?" for column in columns])
+    sql_query = f"UPDATE deeplinks SET {set_clause} WHERE id = ?"
+    return await execute_query(sql_query, (*values, id))    
+
+# increment referals
+async def increment_referals(tlg_id: int) -> bool:
+    sql_query = f"UPDATE users SET referals = referals + 1 WHERE tlg_id = ?"
+    return await execute_query(sql_query, (tlg_id,))    
+
+
+
 # add new client
 async def add_new_client(tlg_id: int, uuid: str, email: str, level: int, enabled: bool = True) -> bool | int:
     sql_query = f"INSERT INTO clients (tlg_id, uuid, email, level, is_enabled) VALUES (?, ?, ?, ?, ?)"
     return await execute_query(sql_query, (tlg_id, uuid, email, level, enabled), 'insert')
+
+# get client 
+async def get_client(id: int) -> bool | aiosqlite.Row:
+    sql_query = f"SELECT * FROM clients WHERE id = ?"
+    user = await execute_selection_query(sql_query, (id, ))
+    return user[0] if user else False
 
 # get all / disabled / enabled clients
 async def get_clients(type: bool | None = True) -> bool | aiosqlite.Row:
@@ -145,12 +184,6 @@ async def delete_client(id: int) -> bool:
     sql_query = f"DELETE FROM clients WHERE id = ?"
     return await execute_query(sql_query, (id,))
 
-# get client 
-async def get_client(id: int) -> bool | aiosqlite.Row:
-    sql_query = f"SELECT * FROM clients WHERE id = ?"
-    user = await execute_selection_query(sql_query, (id, ))
-    return user[0] if user else False
-
 
 
 # get user keys: all / enabled / disabled
@@ -173,23 +206,18 @@ async def get_user_keys_by_user_id(id: int, enabled: bool = True) -> bool | aios
         return await execute_selection_query(sql_query, (tlg_id, ))
     return await execute_selection_query(sql_query, (tlg_id, enabled)) 
 
-# get user and inner join keys by tlg id: all / enabled / disabled
-# async def get_user_and_keys(tlg_id: int, enabled: bool = True) -> bool | aiosqlite.Row:
-#     sql_query = f"SELECT * FROM clients INNER JOIN users ON clients.tlg_id = users.tlg_id WHERE tlg_id = ? AND is_enabled = ?"
-#     if enabled is None:
-#         sql_query = f"SELECT * FROM clients INNER JOIN users ON clients.tlg_id = users.tlg_id WHERE tlg_id = ?"
-#         return await execute_selection_query(sql_query, (tlg_id, ))
-#     return await execute_selection_query(sql_query, (tlg_id, enabled))
+# get user left join keys by tlg id: all / enabled / disabled
+async def get_user_left_join_keys(tlg_id: int) -> bool | aiosqlite.Row:
+    user_selectable = 'users.id as uid, users.tlg_id, username, user_lvl, is_banned, referals, users.created_at as users_created_at'
+    client_selectable = 'clients.id as cid, uuid, email, level, key, is_enabled, clients.created_at as clients_created_at'
+    selectable = f"{user_selectable}, {client_selectable}"
+    sql_query = f"SELECT {selectable} FROM users LEFT JOIN clients ON users.tlg_id = clients.tlg_id WHERE users.tlg_id = ?"
+    return await execute_selection_query(sql_query, (tlg_id, ))
 
-# get user and inner join keys by user id: all / enabled / disabled
-async def get_user_and_keys_by_id(id: int, enabled: bool = True) -> bool | aiosqlite.Row:
-    user = await get_user_by_id(id=id)
-    if not user:
-        return False
-    tlg_id = user['tlg_id']
-    selectable = 'clients.id, uuid, email, level, is_enabled, clients.created_at, users.id as uid, users.tlg_id, username, is_admin, is_banned, users.created_at as u_created_at'
-    sql_query = f"SELECT {selectable} FROM clients INNER JOIN users ON clients.tlg_id = users.tlg_id WHERE clients.tlg_id = ? AND is_enabled = ?"
-    if enabled is None:
-        sql_query = f"SELECT {selectable} FROM clients INNER JOIN users ON clients.tlg_id = users.tlg_id WHERE clients.tlg_id = ?"
-        return await execute_selection_query(sql_query, (tlg_id, ))
-    return await execute_selection_query(sql_query, (tlg_id, enabled))
+# get user left join keys by user id: all / enabled / disabled
+async def get_user_left_join_keys_by_user_id(id: int) -> bool | aiosqlite.Row:
+    user_selectable = 'users.id as uid, users.tlg_id, username, user_lvl, is_banned, referals, users.created_at as users_created_at'
+    client_selectable = 'clients.id as cid, uuid, email, level, key, is_enabled, clients.created_at as clients_created_at'
+    selectable = f"{user_selectable}, {client_selectable}"
+    sql_query = f"SELECT {selectable} FROM users LEFT JOIN clients ON users.tlg_id = clients.tlg_id WHERE users.id = ?"
+    return await execute_selection_query(sql_query, (id, ))

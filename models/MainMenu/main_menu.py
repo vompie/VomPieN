@@ -1,4 +1,5 @@
 from TeleVompy.Interface.window import Window
+
 from settings import BOT_NAME
 from database.sql import get_user
 
@@ -13,7 +14,7 @@ class MM(Window):
     async def constructor(self) -> None:
         self.self_profile = await get_user(tlg_id=self.User.chat_id)
 
-        self.Page.add_button(model='Advantage', row=0, title="Почему мы?")
+        self.Page.add_button(model='Advantage', row=0, title="Преимущества")
         self.Page.add_button(model='HowTo', row=0)
         self.Page.add_button(model='Keys', row=1)
         self.Page.add_button(model='Profile', row=1)

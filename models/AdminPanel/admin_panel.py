@@ -1,4 +1,5 @@
 from TeleVompy.Interface.window import Window
+
 from database.sql import get_user
 
 
@@ -22,4 +23,4 @@ class AdminPanel(Window):
         self.Page.add_button(model='Admins', row=1)
         self.Page.add_button(model='Keys', row=1)
         self.Page.add_button(model='BBck', row=2, title='В меню', callback=self.CallBack.create(dad='MM'))
-        # self.Page.add_button(model='BBck', row=2, title='Поиск пользователя', callback=self.CallBack.create(dad='MM'))
+        self.Page.add_button(model='Others', row=2)

@@ -1,5 +1,7 @@
 from TeleVompy.Interface.window import Window
-from database.sql import get_user_by_id, get_user_keys, get_user, update_user_by_id, update_client, update_client_by_tlg_id
+
+from settings import MAX_CLIENT_KEYS, MAX_ADMINS_KEYS
+from database.sql import get_user, get_user_left_join_keys, get_user_left_join_keys_by_user_id
 
 
 class Profile(Window):
@@ -11,44 +13,61 @@ class Profile(Window):
     async def constructor(self) -> None:
         self.self_profile = await get_user(tlg_id=self.User.chat_id)
 
-        # from users/admins
+        # from users/admins -> admin
         if self.relayed_payload.Us:
-            user = await get_user_by_id(id=self.relayed_payload.Us)
-        # from main menu/command/profile
+            user_keys = await get_user_left_join_keys_by_user_id(id=self.relayed_payload.Us)
+        # from main menu/command/profile -> user
         else:
-            user = await get_user(tlg_id=self.User.chat_id)
+            user_keys = await get_user_left_join_keys(tlg_id=self.User.chat_id) 
 
-        # get keys
-        enabled_keys = await get_user_keys(tlg_id=user['tlg_id'], enabled=True)
-        all_keys = await get_user_keys(tlg_id=user['tlg_id'], enabled=None)
         # username for admin mode
-        if self.self_profile['is_admin'] > 0:
-            username = f"@{user['username']}" if user['username'] else user['tlg_id']
-            level = ''
-            if user['is_admin'] == -1:
+        if self.self_profile['user_lvl'] > 0:
+            # username
+            username = f"@{user_keys[0]['username']}" if user_keys[0]['username'] else user_keys[0]['tlg_id']
+            level = '(пользователь)'
+            if user_keys[0]['user_lvl'] == -1:
                 level = '(разжалован)'
-            elif user['is_admin'] > 0:
-                level = f"(администратор {user['is_admin']}ур.)"
-            elif user['is_banned'] == 1:
+            elif user_keys[0]['user_lvl'] > 0:
+                level = f"(администратор {user_keys[0]['user_lvl']}ур.)"
+            elif user_keys[0]['is_banned'] == 1:
                 level = '(забанен)'
             self.Page.Content.title =  f"{username} {level}"
-        # created at
-        self.Page.Content.text += f"Зарегистрирован: {user['created_at']}"
         # keys count
-        self.Page.Content.text += f"\nКлючей: {len(enabled_keys)}/{len(all_keys)}"
+        if len(user_keys) == 1 and not user_keys[0]['cid']:
+            keys_count = 0
+        elif len(user_keys) == 1 and user_keys[0]['cid']:
+            keys_count = 1
+        else:
+            keys_count = len(user_keys)
+        # max generate keys
+        max_keys = MAX_CLIENT_KEYS
+        if user_keys[0]['is_banned']:
+            max_keys = -1
+        elif user_keys[0]['user_lvl'] == 1:
+            max_keys = MAX_ADMINS_KEYS
+        elif user_keys[0]['user_lvl'] > 1:
+            max_keys = 99
+        keys_count = f"Ключей (активных/максимально): {keys_count}/{max_keys}"
+        # invites count
+        invites_count = f"Друзей приведено: {user_keys[0]['referals']}"
+        # created at
+        created_at = f"Зарегистрирован: {user_keys[0]['users_created_at']}"
+        # full info
+        full_info = f"{invites_count}\n{keys_count}\n{created_at}"
+        self.Page.Content.text = self.Page.Content.html(full_info).code()
 
         # control buttons for admin mode
-        is_block = (self.self_profile['tlg_id'] == user['tlg_id']) or (user['is_admin'] >= self.self_profile['is_admin'])
-        if self.self_profile['is_admin'] > 0 and self.relayed_payload.dad != None and self.relayed_payload.dad != 'MM':
+        if self.self_profile['is_banned'] or self.self_profile['user_lvl'] > 0 and self.relayed_payload.dad != None and self.relayed_payload.dad != 'MM':
+            is_block = (self.self_profile['tlg_id'] == user_keys[0]['tlg_id']) or (user_keys[0]['user_lvl'] >= self.self_profile['user_lvl'])
             # unban / ban
-            if user['is_banned']:
+            if user_keys[0]['is_banned']:
                 self.Page.add_button(model='UnBanUser', row=0, callback=self.CallBack.copy(dad=self.name, payload=self.relayed_payload), block=is_block, answer='cant_unban')
             else:
                 self.Page.add_button(model='BanUser', row=0, callback=self.CallBack.copy(dad=self.name, payload=self.relayed_payload), block=is_block, answer='cant_ban')
             # demoted / promotion from admin
-            if user['is_banned']:
+            if user_keys[0]['is_banned']:
                 is_block = True 
-            if user['is_admin'] > 0: 
+            if user_keys[0]['user_lvl'] > 0: 
                 self.Page.add_button(model='DemotedAdmin', row=0, callback=self.CallBack.copy(dad=self.name, payload=self.relayed_payload), block=is_block, answer='cant_demoted')
             else:
                 self.Page.add_button(model='PromotionAdmin', row=0, callback=self.CallBack.copy(dad=self.name, payload=self.relayed_payload), block=is_block, answer='cant_promotion')
@@ -65,53 +84,3 @@ class Profile(Window):
         
         # keys button
         self.Page.add_button(model='Keys', row=1, callback=self.CallBack.copy(payload=self.relayed_payload, dad=self.name))  
-
-
-class BanUser(Window):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.Page.smile = '☠️'
-        self.Page.Content.title = 'Забанить'
-        self.Action.action_type = "toggle"
-
-    async def constructor(self) -> None:
-        user = await get_user_by_id(id=self.relayed_payload.Us)
-        if not user:
-            return
-        await update_user_by_id(id=self.relayed_payload.Us, columns=['is_banned', 'is_admin'], values=[1, 0])
-        await update_client_by_tlg_id(tlg_id=user['tlg_id'], columns=['is_enabled'], values=[0])
-
-class UnBanUser(Window):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.Page.smile = '😇'
-        self.Page.Content.title = 'Разбанить'
-        self.Action.action_type = "toggle"
-
-    async def constructor(self) -> None:
-        user = await get_user_by_id(id=self.relayed_payload.Us)
-        if not user:
-            return
-        await update_user_by_id(id=self.relayed_payload.Us, columns=['is_banned'], values=[0])
-        await update_client_by_tlg_id(tlg_id=user['tlg_id'], columns=['is_enabled'], values=[1])
-        
-
-class PromotionAdmin(Window):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.Page.smile = '🦷'
-        self.Page.Content.title = 'Повысить'
-        self.Action.action_type = "toggle"
-
-    async def constructor(self) -> None:
-        await update_user_by_id(id=self.relayed_payload.Us, columns=['is_admin'], values=[1])
-
-class DemotedAdmin(Window):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.Page.smile = '🧄'
-        self.Page.Content.title = 'Разжаловать'
-        self.Action.action_type = "toggle"
-
-    async def constructor(self) -> None:
-        await update_user_by_id(id=self.relayed_payload.Us, columns=['is_admin'], values=[-1])

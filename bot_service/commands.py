@@ -1,22 +1,21 @@
 from aiogram.types import Message
 from aiogram.filters import CommandObject
-from bot_service.utils import IF, get_user_or_create, send_error, processing_basic_user_request
-from bot_service.utils import set_deeplink_admin, check_secret_key, set_new_super_admin, admin_level, seppoku_admin
 
 from TeleVompy.config import Cfg
-from settings import BOT_NAME
+
+from bot_service.utils import IF, BOT_NAME, get_user_or_create, send_error, processing_basic_user_request
+from bot_service.utils import read_deeplink, check_secret_key, set_new_super_admin, admin_level, seppoku_admin
 
 
 # /start *deep_link*
 @IF.decor_del_msg
 async def cmd_start_deeplink(message: Message, command: CommandObject):
-    """ This function handles the '/start deep_link' command. It processes the command with deeplink, creates a user and set admin level """
-    user = await get_user_or_create(message_query=message)
-    if not user:
+    """ This function handles the '/start deep_link' command. It processes the command with deeplink, creates a user and set admin level or crate key """
+    deeplink_result, model = await read_deeplink(message=message, command=command)
+    if not deeplink_result:
         return await send_error(message_query=message)
-    await message.answer(text=f'Добро пожаловать в {BOT_NAME} 🧛🏻', message_effect_id=Cfg.CfgMessageEffect.PETARD)
-    await set_deeplink_admin(message=message, command=command)
-    await cmd_menu(message=message)
+    await message.answer(text=deeplink_result, message_effect_id=Cfg.CfgMessageEffect.PETARD)
+    await processing_basic_user_request(message_query=message, model_name=model, message_key='main_msg_id', set_commands=True)
 
 
 # /start

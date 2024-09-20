@@ -1,4 +1,5 @@
 from aiogram.types import CallbackQuery
+
 from bot_service.utils import IF, processing_basic_user_request
 
 

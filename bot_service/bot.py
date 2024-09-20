@@ -1,5 +1,6 @@
 from TeleVompy.Engine.engine import SingleTonBotEngine
 from TeleVompy.Interface.filters import Filters
+
 from settings import BOT_TOKEN
 
 
@@ -9,7 +10,7 @@ Filter = Filters()
 
 # Main loop
 async def main():
-    from bot_service.commands import cmd_start, cmd_menu, cmd_new_key, cmd_profile, cmd_admin_panel, cmd_seppoku, other_msgs
+    from bot_service.commands import cmd_start_deeplink, cmd_start, cmd_menu, cmd_new_key, cmd_profile, cmd_admin_panel, cmd_seppoku, other_msgs
     from bot_service.callbacks import model_callbacks, block_callbacks, other_callback
     from database.sql import create_database
 
@@ -17,6 +18,7 @@ async def main():
     await create_database()
 
     # Registration commands
+    Engine.dp.message.register(cmd_start_deeplink, Filter.CommandStart(deep_link=True))
     Engine.dp.message.register(cmd_start, Filter.Command("start"))
     Engine.dp.message.register(cmd_menu, Filter.Command("menu"))
     Engine.dp.message.register(cmd_new_key, Filter.Command("new_key"))

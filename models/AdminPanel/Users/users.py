@@ -1,4 +1,5 @@
 from TeleVompy.Interface.window import Window
+
 from database.sql import get_users, get_user
 
 
@@ -12,7 +13,7 @@ class Users(Window):
         self.self_profile = await get_user(tlg_id=self.User.chat_id)
 
         # check admin mode
-        if not self.self_profile or self.self_profile['is_admin'] < 1:
+        if not self.self_profile or self.self_profile['user_lvl'] < 1:
             self.Action.action_type = 'redirect'
             self.Action.redirect_to = 'MM'
             return
@@ -31,6 +32,7 @@ class Users(Window):
         if self.relayed_payload.Us:
             self.relayed_payload.sl = self.relayed_payload.Us
             self.relayed_payload_del_attr(attr='Us')
+            
         # pagination
         self.Pagination.add(dataset=users, content_setter=self.content_setter, id_getter=self.id_getter)
 
@@ -45,21 +47,19 @@ class Users(Window):
 
 
     def content_setter(self, item: dict) -> tuple[str, str]:
-        header = f"@{item['username']}" if item['username'] else item['tlg_id']
-        header = f"{header} (забанен)" if item['is_banned'] else header
-        footer = f"Зарегистрирован: {item['created_at']}"
-
-        # username = f"@{item['username']}" if item['username'] else item['tlg_id']
-        # level = ''
-        # if user['is_admin'] == -1:
-        #     level = '(разжалован)'
-        # elif user['is_admin'] > 0:
-        #     level = f"(администратор {user['is_admin']}ур.)"
-        # elif user['is_banned'] == 1:
-        #     level = '(забанен)'
-        # self.Page.Content.title =  f"{username} {level}"
-
-        # привел людей: ...
+        # header
+        username = f"@{item['username']}" if item['username'] else item['tlg_id']
+        status = ''
+        if item['is_banned']:
+            status = '(забанен)'    
+        elif item['user_lvl'] == -1:
+            status = '(разжалован)'
+        header = f"{username} {status}"
+        # footer
+        invites = f"Друзей приведено: {item['referals']}"
+        created_at = f"Зарегистрирован: {item['created_at']}"
+        footer = f"{invites}\n{created_at}"
+        footer = self.Page.Content.html(footer).code()
         return header, footer
 
     def id_getter(self, item: dict) -> None:

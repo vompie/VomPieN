@@ -1,14 +1,17 @@
 from aiogram.filters import CommandObject
-from aiogram.utils.deep_linking import decode_payload
+from aiogram.utils.deep_linking import create_start_link, decode_payload
 from aiogram.types import Message, CallbackQuery
 
+from TeleVompy.Engine.engine import SingleTonBotEngine
 from TeleVompy.Engine.user import User
 from TeleVompy.Engine.model import Model
 from TeleVompy.Interface.window import Window
 from TeleVompy.Interface.interface import Interface
 
-from settings import BOT_NAME, ADMIN_SECRET_KEY
+from settings import DEBUG, BOT_NAME, ADMIN_SECRET_KEY
 from database.sql import create_user, get_user, update_user
+from database.sql import create_deeplink, get_deeplink, update_deeplink, increment_referals
+from json import loads, dumps
 
 
 Models = Model().models
@@ -22,25 +25,84 @@ async def send_error(message_query: Message | CallbackQuery, model: str = 'Error
     del window
 
 
-def extract_payload(command: CommandObject) -> str:
-    """ This function processes the command with deeplink and returns the payload """
-    return decode_payload(command.args)
-
-async def set_deeplink_admin(message: Message, command: CommandObject) -> None:
+async def read_deeplink(message: Message, command: CommandObject) -> bool | str:
     """ This function set admin level by payload """
-    token = extract_payload(command=command)
-    # if token_user_id.level_admin > 1:
-    # await set_new_admin(tlg_id=message.from_user.id)
+    try:
+        payload = loads(decode_payload(command.args))
+        
+        # get deeplink
+        deeplink_id = payload['deeplink_id']
+        deeplink = await get_deeplink(id=deeplink_id)
+        if not deeplink or deeplink['is_used']:
+            if DEBUG: print('Get deeplink error')
+            return False, False     
 
-async def get_user_or_create(message_query: Message | CallbackQuery) -> object:
+        # link for self
+        if deeplink['tlg_id'] == message.from_user.id:
+            if DEBUG: print('Cant open own deeplink')
+            return False, False
+
+        # get or create user
+        user, was_created = await get_user_or_create(message_query=message, return_was_created_status=True)
+        if not user:
+            if DEBUG: print('Cant get or create new user')
+            return False, False
+        
+        # if new user -> increment referals count
+        if not was_created:
+            await increment_referals(tlg_id=deeplink['tlg_id'])
+        
+        # get initiator
+        initiator = await get_user(tlg_id=deeplink['tlg_id'])
+        if not initiator:
+            if DEBUG: print('Cant get initiator')
+            return False, False
+        
+        # new admin
+        if deeplink['type'] == 'new_admin':
+            if initiator['is_banned'] or initiator['user_lvl'] < 1 or user['user_lvl'] > 0 or user['is_banned']:
+                if DEBUG: print('Initiator or user was banned or initiator level < 1 or user level > 0')
+                return False, False
+            # update user lvl
+            update_result = await update_user(tlg_id=user['tlg_id'], columns=['user_lvl'], values=[1])
+            if not update_result:
+                if DEBUG: print('Cant update user')
+                return False, False
+            await update_deeplink(id=deeplink_id, columns=['is_used'], values=[1])
+            return f'Теперь ты администратор в {BOT_NAME} 🧛🏻', 'AdminPanel'
+        
+        elif deeplink['type'] == 'new_user':
+            # дает разбан если от админа
+            pass
+        
+        elif deeplink['type'] == 'new_key':
+            pass
+    except Exception as e:
+        if DEBUG: print(f'Read deeplink error: {e}')
+        return False, False
+
+async def new_deeplink(tlg_id: int, type: str) -> bool | str:
+    """ This function creates deeplink for new admin / new friend / new key """
+    deeplink_id = await create_deeplink(tlg_id=tlg_id, type=type)  
+    if not deeplink_id:
+        return False
+    payload = {'deeplink_id': deeplink_id}
+    deeplink = await create_start_link(bot=SingleTonBotEngine().bot, payload=dumps(payload), encode=True)
+    return deeplink
+
+
+async def get_user_or_create(message_query: Message | CallbackQuery, return_was_created_status: bool = False) -> tuple[object, bool]:
     """ This function get user or create new user """
-    # get base information
+    was_created = True
     telegram_id = message_query.from_user.id
     username = message_query.from_user.username if message_query.from_user.username else ''
     user = await get_user(tlg_id=message_query.from_user.id)
     if not user:
         await create_user(tlg_id=telegram_id, username=username)
+        was_created = False
     user = await get_user(tlg_id=message_query.from_user.id)
+    if return_was_created_status:
+        return user, was_created
     return user
 
 
@@ -55,7 +117,7 @@ async def check_secret_key(message: Message) -> bool:
 
 async def set_new_super_admin(message: Message) -> bool:
     """ This function sets new super admin user """
-    user = await get_user_or_create(message=message)
+    user = await get_user_or_create(message_query=message)
     if user['is_banned']:
         return
     return await update_user(tlg_id=user['tlg_id'], columns=['user_lvl'], values=[2])
@@ -115,10 +177,12 @@ async def processing_basic_user_request(
 
     # create user if not exist
     user: dict = await get_user_or_create(message_query=message_query)
+    if not user:
+        return await send_error(message_query=message_query)
 
     # update commands
-    if set_commands or user['user_lvl'] == -1:
-        await set_commands_to_user(message_query=message_query, user_lvl=user['user_lvl'], is_banned=user['is_banned'])
+    if set_commands:
+        await set_commands_to_user(message_query=message_query, user=user)
 
     # answer on callback
     if isinstance(message_query, CallbackQuery):
@@ -130,15 +194,14 @@ async def processing_basic_user_request(
 
     # if user is banned
     if user['is_banned']:
-        await send_error(message_query=message_query, model='BanMsg')
-        return
+        return await send_error(message_query=message_query, model='BanMsg')
 
     # send window
     if model_name and message_query:
         window: Window = Models[model_name](user=User(message_query))
         if action_type:
             window.Action.action_type = action_type 
-         # use action
+        # use action
         await window.action()
         # update message id
         if message_key and not action_type:
@@ -147,17 +210,15 @@ async def processing_basic_user_request(
         del window
 
 
-async def set_commands_to_user(message_query: Message | CallbackQuery, user_lvl: bool = False, is_banned: bool = False) -> None:
+async def set_commands_to_user(message_query: Message | CallbackQuery, user: dict) -> None:
     """ This function sets commands to the bot """
     commands = [
         {'command': 'menu', 'description': f'🌐 Меню {BOT_NAME}'},
         {'command': 'profile', 'description': '🧛🏻 Личный кабинет'},
         {'command': 'new_key', 'description': '🔑 Новый ключ'},
     ]
-    if user_lvl > 0:
+    if user['user_lvl'] > 0:
         commands.append({'command': 'admin_panel', 'description': '🦇 Администрирование'})
-    if is_banned:
+    if user['is_banned']:
         commands = [{'command': 'menu', 'description': '☠️ Заблокирован'}]    
     await IF.set_commands(message_query=message_query, commands=commands)
-    if user_lvl == -1:
-        await unset_admin(tlg_id=message_query.from_user.id)
