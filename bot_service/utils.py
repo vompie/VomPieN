@@ -8,8 +8,9 @@ from TeleVompy.Engine.model import Model
 from TeleVompy.Interface.window import Window
 from TeleVompy.Interface.interface import Interface
 
-from settings import DEBUG, BOT_NAME, ADMIN_SECRET_KEY
-from database.sql import create_user, get_user, update_user
+from settings import DEBUG, BOT_NAME, ADMIN_SECRET_KEY, MAX_ADMINS_KEYS
+from add_client import add_client
+from database.sql import create_user, get_user, update_user, get_user_keys
 from database.sql import create_deeplink, get_deeplink, update_deeplink, increment_referals
 from json import loads, dumps
 
@@ -76,7 +77,24 @@ async def read_deeplink(message: Message, command: CommandObject) -> bool | str:
             pass
         
         elif deeplink['type'] == 'new_key':
-            pass
+            if initiator['is_banned'] or initiator['user_lvl'] < 1 or user['is_banned']:
+                if DEBUG: print('Initiator or user was banned or initiator level < 1')
+                return False, False
+            # max generate keys
+            keys = await get_user_keys(tlg_id=user['tlg_id'], enabled=None)
+            max_keys = MAX_ADMINS_KEYS if initiator['user_lvl'] < 2 else 99
+            if len(keys) >= max_keys:
+                if DEBUG: print(f'Cant add new key: {len(keys)=} >= {max_keys=}')
+                return False, False
+            # add new key
+            add_client_result = await add_client(tlg_id=user['tlg_id'])
+            if not add_client_result:
+                if DEBUG: print(f'Cant add new key (add client error)')
+                return False, False
+            await update_deeplink(id=deeplink_id, columns=['is_used'], values=[1])
+            if was_created:
+                return f'У тебя появился новый ключ ⤵️', 'Keys'
+            return f'Добро пожаловать в {BOT_NAME} 🧛🏻\nКстати, у тебя появился новый ключ ⤵️', 'Keys'
     except Exception as e:
         if DEBUG: print(f'Read deeplink error: {e}')
         return False, False
