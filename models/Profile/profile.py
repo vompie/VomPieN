@@ -1,22 +1,22 @@
 from TeleVompy.Interface.window import Window
 
-from settings import MAX_CLIENT_KEYS, MAX_ADMINS_KEYS
+from settings import BOT_SMILE, MAX_CLIENT_KEYS, MAX_ADMINS_KEYS
 from database.sql import get_user, get_user_left_join_keys, get_user_left_join_keys_by_user_id
 
 
 class Profile(Window):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.Page.smile = '🧛🏻'
-        self.Page.Content.title = 'Личный кабинет'
+        self.Page.smile = BOT_SMILE
+        self.Page.Content.title = 'Профиль'
 
     async def constructor(self) -> None:
         self.self_profile = await get_user(tlg_id=self.User.chat_id)
 
-        # from users/admins -> admin
+        # from users_admins -> admin
         if self.relayed_payload.Us:
             user_keys = await get_user_left_join_keys_by_user_id(id=self.relayed_payload.Us)
-        # from main menu/command/profile -> user
+        # from main menu/command -> user
         else:
             user_keys = await get_user_left_join_keys(tlg_id=self.User.chat_id) 
 
@@ -24,14 +24,14 @@ class Profile(Window):
         if self.self_profile['user_lvl'] > 0:
             # username
             username = f"@{user_keys[0]['username']}" if user_keys[0]['username'] else user_keys[0]['tlg_id']
-            level = '(пользователь)'
+            status = '(пользователь)'
             if user_keys[0]['user_lvl'] == -1:
-                level = '(разжалован)'
+                status = '(разжалован)'
             elif user_keys[0]['user_lvl'] > 0:
-                level = f"(администратор {user_keys[0]['user_lvl']}ур.)"
+                status = f"(администратор {user_keys[0]['user_lvl']}ур.)"
             elif user_keys[0]['is_banned'] == 1:
-                level = '(забанен)'
-            self.Page.Content.title =  f"{username} {level}"
+                status = '(забанен)'
+            self.Page.Content.title =  f"{username} {status}"
         # keys count
         if len(user_keys) == 1 and not user_keys[0]['cid']:
             keys_count = 0
@@ -77,10 +77,14 @@ class Profile(Window):
             self.relayed_payload.Bt = 'Profile'
 
         # back button
-        if not self.relayed_payload.dad or self.relayed_payload.dad == 'MM' or self.relayed_payload.Bt == 'Profile':
+        if not self.relayed_payload.dad or self.relayed_payload.dad == 'MM': #  or self.relayed_payload.Bt == 'Profile'
             self.Page.add_button(model='BBck', row=1, title='В меню', callback=self.CallBack.create(dad='MM'))
         else:
             self.Page.add_button(model='BBck', row=1, callback=self.CallBack.copy(payload=self.relayed_payload, dad=self.relayed_payload.Bt))
         
-        # keys button
-        self.Page.add_button(model='Keys', row=1, callback=self.CallBack.copy(payload=self.relayed_payload, dad=self.name))  
+        # keys button for admins
+        if self.self_profile['is_banned'] or self.self_profile['user_lvl'] > 0 and self.relayed_payload.dad != None and self.relayed_payload.dad != 'MM':
+            self.Page.add_button(model='Keys', row=1, callback=self.CallBack.copy(payload=self.relayed_payload, dad=self.name))
+        # invite user button for users
+        else:
+            self.Page.add_button(model='InviteUser', row=1, title='Привести друга')  

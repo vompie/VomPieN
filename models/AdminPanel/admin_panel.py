@@ -18,9 +18,9 @@ class AdminPanel(Window):
             self.Action.redirect_to = 'MM'
             return
         
-        self.Page.add_button(model='Users', row=0)
+        self.Page.add_button(model='UsersAdmins', row=0)
         self.Page.add_button(model='Traffic', row=0)
-        self.Page.add_button(model='Admins', row=1)
+        self.Page.add_button(model='UsersAdmins', row=1, smile='🧙🏻', title='Администраторы', callback=self.CallBack.copy(dad=self.name, payload=self.relayed_payload.set_attrs({'Adm': True})))
         self.Page.add_button(model='Keys', row=1)
         self.Page.add_button(model='BBck', row=2, title='В меню', callback=self.CallBack.create(dad='MM'))
         self.Page.add_button(model='Others', row=2)

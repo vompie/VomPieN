@@ -8,7 +8,7 @@ class Keys(Window):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.Page.smile = '🗝'
-        self.Page.Content.title = 'Ключи доступа'
+        self.Page.Content.title = 'Ключи'
 
     async def constructor(self) -> None:
         self.self_profile = await get_user(tlg_id=self.User.chat_id)
@@ -164,9 +164,9 @@ class Keys(Window):
 
     @staticmethod
     def server_info() -> str:
-        from settings import BOT_NAME, PROTOCOL, SERVER_IP, SERVER_PORT, SERVER_TYPE, SECURITY, ALPN, FINGERPRINT, PACKET_ENCODING
+        from settings import BOT_NAME, BOT_SMILE, PROTOCOL, SERVER_IP, SERVER_PORT, SERVER_TYPE, SECURITY, ALPN, FINGERPRINT, PACKET_ENCODING
         
-        title = f'Дополнительные данные для подключения к {BOT_NAME} 🧛🏻'
+        title = f'Дополнительные данные для подключения к {BOT_NAME} {BOT_SMILE}'
         protocol = f"Protocol: {PROTOCOL}"
         ip = f'IP: {SERVER_IP}:{SERVER_PORT}'
         server_type = f"Type: {SERVER_TYPE}"

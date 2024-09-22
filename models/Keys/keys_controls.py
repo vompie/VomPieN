@@ -1,6 +1,6 @@
 from TeleVompy.Interface.window import Window
 
-from settings import BOT_NAME, MAX_CLIENT_KEYS, MAX_ADMINS_KEYS
+from settings import BOT_NAME, BOT_SMILE, MAX_CLIENT_KEYS, MAX_ADMINS_KEYS
 from database.sql import get_user, get_user_left_join_keys, get_user_left_join_keys_by_user_id
 
 from add_client import add_client
@@ -68,7 +68,7 @@ class GetKey(Window):
         self.Action.action_type = "send"
 
     async def constructor(self) -> None:
-        self.Page.Content.title = f'Ключ доступа к {BOT_NAME} 🧛🏻'
+        self.Page.Content.title = f'Ключ доступа к {BOT_NAME} {BOT_SMILE}'
         self.Page.Content.text = 'Текст'
         self.Page.add_button(model='BYes')
 

@@ -1,6 +1,7 @@
 from TeleVompy.Interface.window import Window
 
-from database.sql import get_user_by_id, get_user, update_user_by_id
+
+from database.sql import get_user_by_id, get_user, update_user
 from update_client import update_client
 
 
@@ -13,17 +14,27 @@ class BanUser(Window):
 
     async def constructor(self) -> None:
         self.self_profile = await get_user(tlg_id=self.User.chat_id)
+
         # check admin mode
         if not self.self_profile or self.self_profile['user_lvl'] < 1:
             self.Action.action_type = 'redirect'
             self.Action.redirect_to = 'MM'
             return
         
+        # get user
         user = await get_user_by_id(id=self.relayed_payload.Us)
-        update_result = await update_user_by_id(id=self.relayed_payload.Us, columns=['is_banned', 'user_lvl'], values=[1, 0])
+        if not user:
+            return
+        
+        # update user
+        update_result = await update_user(tlg_id=user['tlg_id'], columns=['is_banned', 'user_lvl'], values=[1, 0])
         if not update_result:
             return
         await update_client(tlg_id=user['tlg_id'], enabled=False)
+
+        # send information message
+        from bot_service.utils import send_msg
+        await send_msg(chat_id=user['tlg_id'], model='InfoMsg', title='Твой аккаунт забанен', text='Обнови список команд: /menu')
 
 
 class UnBanUser(Window):
@@ -35,17 +46,27 @@ class UnBanUser(Window):
 
     async def constructor(self) -> None:
         self.self_profile = await get_user(tlg_id=self.User.chat_id)
+
         # check admin mode
         if not self.self_profile or self.self_profile['user_lvl'] < 1:
             self.Action.action_type = 'redirect'
             self.Action.redirect_to = 'MM'
             return
         
+        # get user
         user = await get_user_by_id(id=self.relayed_payload.Us)
-        update_result = await update_user_by_id(id=self.relayed_payload.Us, columns=['is_banned', 'user_lvl'], values=[0, 0])
+        if not user:
+            return
+        
+        # update user   
+        update_result = await update_user(tlg_id=user['tlg_id'], columns=['is_banned', 'user_lvl'], values=[0, 0])
         if not update_result:
             return
-        await update_client(tlg_id=user['tlg_id'], enabled=False)
+        await update_client(tlg_id=user['tlg_id'], enabled=True)
+        
+        # send information message
+        from bot_service.utils import send_msg
+        await send_msg(chat_id=user['tlg_id'], model='InfoMsg', title='Твой аккаунт разбанен', text='Обнови список команд: /menu')
         
 
 class PromotionAdmin(Window):
@@ -57,13 +78,26 @@ class PromotionAdmin(Window):
 
     async def constructor(self) -> None:
         self.self_profile = await get_user(tlg_id=self.User.chat_id)
+
         # check admin mode
         if not self.self_profile or self.self_profile['user_lvl'] < 1:
             self.Action.action_type = 'redirect'
             self.Action.redirect_to = 'MM'
             return
         
-        await update_user_by_id(id=self.relayed_payload.Us, columns=['user_lvl'], values=[1])
+        # get user
+        user = await get_user_by_id(id=self.relayed_payload.Us)
+        if not user:
+            return
+
+        # update user
+        update_result = await update_user(tlg_id=user['tlg_id'], columns=['user_lvl'], values=[1])
+        if not update_result:
+            return
+        
+        # send information message
+        from bot_service.utils import send_msg
+        await send_msg(chat_id=user['tlg_id'], model='InfoMsg', title='Ты повышен до администратора', text='Обнови список команд: /menu')
 
 
 class DemotedAdmin(Window):
@@ -75,10 +109,22 @@ class DemotedAdmin(Window):
 
     async def constructor(self) -> None:
         self.self_profile = await get_user(tlg_id=self.User.chat_id)
+
         # check admin mode
         if not self.self_profile or self.self_profile['user_lvl'] < 1:
             self.Action.action_type = 'redirect'
             self.Action.redirect_to = 'MM'
             return
         
-        await update_user_by_id(id=self.relayed_payload.Us, columns=['user_lvl'], values=[-1])
+        # get user
+        user = await get_user_by_id(id=self.relayed_payload.Us)
+        if not user:
+            return
+
+        update_result = await update_user(tlg_id=user['tlg_id'], columns=['user_lvl'], values=[-1])
+        if not update_result:
+            return
+        
+        # send information message
+        from bot_service.utils import send_msg
+        await send_msg(chat_id=user['tlg_id'], model='InfoMsg', title='Ты разжалован', text='Обнови список команд: /menu')

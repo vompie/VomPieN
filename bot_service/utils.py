@@ -8,8 +8,9 @@ from TeleVompy.Engine.model import Model
 from TeleVompy.Interface.window import Window
 from TeleVompy.Interface.interface import Interface
 
-from settings import DEBUG, BOT_NAME, ADMIN_SECRET_KEY, MAX_ADMINS_KEYS
+from settings import DEBUG, BOT_NAME, BOT_SMILE, ADMIN_SECRET_KEY, MAX_ADMINS_KEYS
 from add_client import add_client
+from update_client import update_client
 from database.sql import create_user, get_user, update_user, get_user_keys
 from database.sql import create_deeplink, get_deeplink, update_deeplink, increment_referals
 from json import loads, dumps
@@ -19,9 +20,12 @@ Models = Model().models
 IF = Interface()
 
 
-async def send_error(message_query: Message | CallbackQuery, model: str = 'ErrorMsg') -> None:
+async def send_msg(model: str, message_query: Message | CallbackQuery | None = None, chat_id: int | None = None, *args, **kwargs) -> None:
     """ This function sends an error message """
-    window: Window = Models[model](user=User(message_query))
+    if chat_id:
+        window: Window = Models[model](user=User(chat_id=chat_id), *args, **kwargs)
+    else:
+        window: Window = Models[model](user=User(message_query), *args, **kwargs)
     await window.action()
     del window
 
@@ -35,7 +39,7 @@ async def read_deeplink(message: Message, command: CommandObject) -> bool | str:
         deeplink_id = payload['deeplink_id']
         deeplink = await get_deeplink(id=deeplink_id)
         if not deeplink or deeplink['is_used']:
-            if DEBUG: print('Get deeplink error')
+            if DEBUG: print('Get deeplink error or deeplink already use')
             return False, False     
 
         # link for self
@@ -70,12 +74,26 @@ async def read_deeplink(message: Message, command: CommandObject) -> bool | str:
                 if DEBUG: print('Cant update user')
                 return False, False
             await update_deeplink(id=deeplink_id, columns=['is_used'], values=[1])
-            return f'Теперь ты администратор в {BOT_NAME} 🧛🏻', 'AdminPanel'
+            return f'Теперь ты администратор в {BOT_NAME} {BOT_SMILE}', 'AdminPanel'
         
+        # new user
         elif deeplink['type'] == 'new_user':
-            # дает разбан если от админа
-            pass
+            if not user['is_banned'] or initiator['is_banned'] or initiator['user_lvl'] < 1:
+                if DEBUG: print('User not banned or initiator is banned or initiator is not admin')
+                return True, 'MM'
+            # unban user
+            update_result = await update_user(tlg_id=user['tlg_id'], columns=['is_banned'], values=[0])
+            if not update_result:
+                return False, False
+            # update client
+            update_client_result = await update_client(tlg_id=user['tlg_id'], enabled=True)
+            if not update_client_result:
+                if DEBUG: print(f'Cant unban user (update client error)')
+                return False, False
+            await update_deeplink(id=deeplink_id, columns=['is_used'], values=[1])
+            return f'С возвращением в {BOT_NAME} {BOT_SMILE}\nБольше так не хулигань', 'MM'
         
+        # new key
         elif deeplink['type'] == 'new_key':
             if initiator['is_banned'] or initiator['user_lvl'] < 1 or user['is_banned']:
                 if DEBUG: print('Initiator or user was banned or initiator level < 1')
@@ -92,15 +110,16 @@ async def read_deeplink(message: Message, command: CommandObject) -> bool | str:
                 if DEBUG: print(f'Cant add new key (add client error)')
                 return False, False
             await update_deeplink(id=deeplink_id, columns=['is_used'], values=[1])
+            new_key_str = 'У тебя появился новый ключ ⤵️'
             if was_created:
-                return f'У тебя появился новый ключ ⤵️', 'Keys'
-            return f'Добро пожаловать в {BOT_NAME} 🧛🏻\nКстати, у тебя появился новый ключ ⤵️', 'Keys'
+                return new_key_str, 'Keys'
+            return f'Добро пожаловать в {BOT_NAME} {BOT_SMILE}\nКстати! {new_key_str}', 'Keys'
     except Exception as e:
         if DEBUG: print(f'Read deeplink error: {e}')
         return False, False
 
 async def new_deeplink(tlg_id: int, type: str) -> bool | str:
-    """ This function creates deeplink for new admin / new friend / new key """
+    """ This function creates deeplink for new admin / new user / new key """
     deeplink_id = await create_deeplink(tlg_id=tlg_id, type=type)  
     if not deeplink_id:
         return False
@@ -182,21 +201,22 @@ async def processing_basic_user_request(
     answers = {
         'internal_error': 'Пумпумпум... ошибочка вышла',
 
+        'user_admin_not_select': 'Нужно кого-нибудь выбрать',
         'user_not_select': 'Нужно выбрать пользователя',
         'admin_not_select': 'Нужно выбрать администратора',
-        'key_not_select': 'Нужно выбрать ключ доступа',
+        'key_not_select': 'Нужно выбрать ключ',
 
         'cant_demoted': 'Нельзя разжаловать этого пользователя',
         'cant_promotion': 'Нельзя повысить этого пользователя',
         'cant_ban': 'Нельзя забанить этого пользователя',
         'cant_unban': 'Нельзя разбанить этого пользователя',
-        'cant_create_key': 'Нельзя создать еще один ключ доступа'
+        'cant_create_key': 'Нельзя создать еще один ключ'
     }
 
     # create user if not exist
     user: dict = await get_user_or_create(message_query=message_query)
     if not user:
-        return await send_error(message_query=message_query)
+        return await send_msg(message_query=message_query, model='ErrorMsg')
 
     # update commands
     if set_commands:
@@ -212,7 +232,7 @@ async def processing_basic_user_request(
 
     # if user is banned
     if user['is_banned']:
-        return await send_error(message_query=message_query, model='BanMsg')
+        return await send_msg(message_query=message_query, model='BanMsg')
 
     # send window
     if model_name and message_query:
@@ -232,7 +252,7 @@ async def set_commands_to_user(message_query: Message | CallbackQuery, user: dic
     """ This function sets commands to the bot """
     commands = [
         {'command': 'menu', 'description': f'🌐 Меню {BOT_NAME}'},
-        {'command': 'profile', 'description': '🧛🏻 Личный кабинет'},
+        {'command': 'profile', 'description': f'{BOT_SMILE} Профиль'},
         {'command': 'new_key', 'description': '🔑 Новый ключ'},
     ]
     if user['user_lvl'] > 0:

@@ -3,7 +3,7 @@ from aiogram.filters import CommandObject
 
 from TeleVompy.config import Cfg
 
-from bot_service.utils import IF, BOT_NAME, get_user_or_create, send_error, processing_basic_user_request
+from bot_service.utils import IF, BOT_NAME, BOT_SMILE, get_user_or_create, send_msg, processing_basic_user_request
 from bot_service.utils import read_deeplink, check_secret_key, set_new_super_admin, admin_level, seppoku_admin
 
 
@@ -13,8 +13,9 @@ async def cmd_start_deeplink(message: Message, command: CommandObject):
     """ This function handles the '/start deep_link' command. It processes the command with deeplink, creates a user and set admin level or crate key """
     deeplink_result, model = await read_deeplink(message=message, command=command)
     if not deeplink_result:
-        return await send_error(message_query=message)
-    await message.answer(text=deeplink_result, message_effect_id=Cfg.CfgMessageEffect.PETARD)
+        return await send_msg(message_query=message, model='ErrorMsg')
+    if isinstance(deeplink_result, str):
+        await message.answer(text=deeplink_result, message_effect_id=Cfg.CfgMessageEffect.PETARD)
     await processing_basic_user_request(message_query=message, model_name=model, message_key='main_msg_id', set_commands=True)
 
 
@@ -24,8 +25,8 @@ async def cmd_start(message: Message):
     """ This function handles the '/start' command. It try to create user """
     user = await get_user_or_create(message_query=message)
     if not user:
-        return await send_error(message_query=message)
-    await message.answer(text=f'Добро пожаловать в {BOT_NAME} 🧛🏻', message_effect_id=Cfg.CfgMessageEffect.PETARD)
+        return await send_msg(message_query=message, model='ErrorMsg')
+    await message.answer(text=f'Добро пожаловать в {BOT_NAME} {BOT_SMILE}', message_effect_id=Cfg.CfgMessageEffect.PETARD)
     await cmd_menu(message=message)
 
 

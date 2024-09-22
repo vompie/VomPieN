@@ -9,7 +9,7 @@ class MM(Window):
         super().__init__(*args, **kwargs)
         self.Page.smile = '🌐'
         self.Page.Content.title = BOT_NAME
-        self.Page.Content.text = 'Ознакомиться с....'
+        self.Page.Content.text = 'Ознакомься с...'
 
     async def constructor(self) -> None:
         self.self_profile = await get_user(tlg_id=self.User.chat_id)

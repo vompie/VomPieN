@@ -9,7 +9,8 @@ DEBUG: bool = True
 PROJECT_DIR: str = os.getenv("PROJECT_DIR") if os.getenv("PROJECT_DIR") else ''
 XRAY_DIR: str = os.getenv("XRAY_DIR") if os.getenv("PROJECT_DIR") else ''
 
-BOT_NAME: str = 'VomPieN'
+BOT_NAME: str = os.getenv("BOT_NAME")
+BOT_SMILE: str = '🧛🏻'
 BOT_TOKEN: str = os.getenv("BOT_TOKEN")
 ADMIN_SECRET_KEY: str = os.getenv("ADMIN_SECRET_KEY")
 

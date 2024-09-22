@@ -1,7 +1,7 @@
 from TeleVompy.Interface.window import Window
 
 from database.sql import get_user
-from settings import BOT_NAME
+from settings import BOT_NAME, BOT_SMILE
 
 
 class Others(Window):
@@ -19,17 +19,19 @@ class Others(Window):
             self.Action.redirect_to = 'MM'
             return
         
-        self.Page.add_button(model='InviteAdmin', row=0, title='Пригласить администратора')
-        self.Page.add_button(model='InviteByKey', row=0, title='Пригласительный ключ') # Вступительный
-        self.Page.add_button(model='BBck', row=1, callback=self.CallBack.create(dad='AdminPanel')) # ✉️
+        self.Page.add_button(model='InviteAdmin', row=0, title='Администратор')
+        self.Page.add_button(model='InviteUser', row=0, title='Пользователь')
+        self.Page.add_button(model='InviteByKey', row=0, title='Ключ') # Вступительный
+        # reboot server
+        self.Page.add_button(model='BBck', row=1, callback=self.CallBack.create(dad='AdminPanel'))
         # self.Page.add_button(model='BBck', row=2, title='Поиск пользователя', callback=self.CallBack.create(dad='MM'))
 
 
 class InviteAdmin(Window):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.Page.smile = '⚰️'
-        self.Page.Content.title = f'Приглашение стать администратором в {BOT_NAME} 🧛🏻'
+        self.Page.smile = '💌'
+        self.Page.Content.title = f'Приглашение стать администратором в {BOT_NAME} {BOT_SMILE}'
         self.Action.action_type = "send"
 
     async def constructor(self) -> None:
@@ -41,10 +43,26 @@ class InviteAdmin(Window):
         self.Page.add_button(model='BYes')
 
 
+class InviteUser(Window):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.Page.smile = '📧'
+        self.Page.Content.title = f'Приглашение в {BOT_NAME} {BOT_SMILE}'
+        self.Action.action_type = "send"
+
+    async def constructor(self) -> None:
+        from bot_service.utils import new_deeplink
+        deeplink = await new_deeplink(tlg_id=self.User.chat_id, type='new_user')
+        self.Page.Content.text = 'Пумпумпум... ошибочка вышла'
+        if deeplink:
+            self.Page.Content.text = deeplink
+        self.Page.add_button(model='BYes')
+
+
 class InviteByKey(Window):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.Page.smile = '🔑'
+        self.Page.smile = '✉️'
         self.Page.Content.title = f'Получить новый ключ'
         self.Action.action_type = "send"
 
