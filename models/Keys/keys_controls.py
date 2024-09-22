@@ -38,11 +38,20 @@ class NewKey(Window):
             max_keys = MAX_ADMINS_KEYS
         elif self.self_profile['user_lvl'] > 1:
             max_keys = 99
+
+        # if limit
         if len(user_keys) >= max_keys:
             return
         
         # add new key
-        await add_client(tlg_id=user_keys[0]['tlg_id'])
+        add_client_result = await add_client(tlg_id=user_keys[0]['tlg_id'])
+        if not add_client_result:
+            return
+
+        # send information message
+        if self.relayed_payload.Us:
+            from bot_service.utils import send_msg
+            await send_msg(chat_id=user_keys[0]['tlg_id'], model='InfoMsg', title='Получен новый ключ', text='Администраторы подарили тебе ключ')
 
 
 class DeleteKey(Window):
@@ -82,6 +91,7 @@ class EnableKey(Window):
 
     async def constructor(self) -> None:
         self.self_profile = await get_user(tlg_id=self.User.chat_id)
+
         # check admin mode
         if not self.self_profile or self.self_profile['user_lvl'] < 1:
             self.Action.action_type = 'redirect'
@@ -101,6 +111,7 @@ class DisableKey(Window):
 
     async def constructor(self) -> None:
         self.self_profile = await get_user(tlg_id=self.User.chat_id)
+
         # check admin mode
         if not self.self_profile or self.self_profile['user_lvl'] < 1:
             self.Action.action_type = 'redirect'
