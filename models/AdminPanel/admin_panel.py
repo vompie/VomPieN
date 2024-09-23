@@ -23,4 +23,7 @@ class AdminPanel(Window):
         self.Page.add_button(model='UsersAdmins', row=1, smile='🧙🏻', title='Администраторы', callback=self.CallBack.copy(dad=self.name, payload=self.relayed_payload.set_attrs({'Adm': True})))
         self.Page.add_button(model='Keys', row=1)
         self.Page.add_button(model='BBck', row=2, title='В меню', callback=self.CallBack.create(dad='MM'))
-        self.Page.add_button(model='Others', row=2)
+
+        # check super admin mode
+        if self.self_profile['user_lvl'] > 1:
+            self.Page.add_button(model='Others', row=2)
