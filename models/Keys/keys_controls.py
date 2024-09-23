@@ -1,7 +1,7 @@
 from TeleVompy.Interface.window import Window
 
 from settings import BOT_NAME, BOT_SMILE, MAX_CLIENT_KEYS, MAX_ADMINS_KEYS
-from database.sql import get_user, get_user_left_join_keys, get_user_left_join_keys_by_user_id
+from database.sql import get_user, get_user_left_join_keys, get_user_left_join_keys_by_user_id, get_user_by_key_id
 
 from add_client import add_client
 from delete_client import delete_client
@@ -14,17 +14,24 @@ class NewKey(Window):
         self.Page.smile = '🔑'
         self.Page.Content.title = 'Новый ключ'
         self.Action.action_type = "click"
-        self.relayed_payload.dad = 'Keys'
+        self.relayed_payload.dad = kwargs.get('dad', 'Keys')
 
     async def constructor(self) -> None:
         self.self_profile = await get_user(tlg_id=self.User.chat_id)
 
         # new key for user/admin button
-        if self.relayed_payload.Us:
+        if self.relayed_payload.Bt == 'UsersAdmins':
             user_keys = await get_user_left_join_keys_by_user_id(id=self.relayed_payload.Us)
+        # new key for keys button
+        if self.relayed_payload.Bt == 'AdminPanel':
+            user = await get_user_by_key_id(id=self.relayed_payload.Ks)
+            user_keys = await get_user_left_join_keys(tlg_id=user['tlg_id'])
         # new key for self
         else:
             user_keys = await get_user_left_join_keys(tlg_id=self.User.chat_id)
+
+        if self.relayed_payload.Bt == 'AdminPanel':
+            self.relayed_payload.dad = 'Profile'
 
         # check user
         if not user_keys or not len(user_keys) or user_keys[0]['is_banned']:
@@ -49,7 +56,7 @@ class NewKey(Window):
             return
 
         # send information message
-        if self.relayed_payload.Us:
+        if self.relayed_payload.Bt:
             from bot_service.utils import send_msg
             await send_msg(chat_id=user_keys[0]['tlg_id'], model='InfoMsg', title='Получен новый ключ', text='Администраторы подарили тебе ключ')
 

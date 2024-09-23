@@ -1,6 +1,6 @@
 from TeleVompy.Interface.window import Window
 
-from database.sql import get_user, get_user_left_join_keys, get_user_left_join_keys_by_user_id
+from database.sql import get_user, get_user_left_join_keys, get_user_left_join_keys_by_user_id, get_keys_left_join_user
 from settings import MAX_CLIENT_KEYS, MAX_ADMINS_KEYS
 
 
@@ -13,33 +13,44 @@ class Keys(Window):
     async def constructor(self) -> None:
         self.self_profile = await get_user(tlg_id=self.User.chat_id)
 
-        # from users/admins -> admin
-        if self.relayed_payload.Us:
+        # from users_admins -> profile -> keys      UsersAdmins view
+        if self.relayed_payload.Bt == 'UsersAdmins':
             user_keys = await get_user_left_join_keys_by_user_id(id=self.relayed_payload.Us)
-        # from main menu/command/profile -> user
-        # if all keys!!!
-        else:
-            user_keys = await get_user_left_join_keys(tlg_id=self.User.chat_id)     
-
-        # back to Profile (users/admins)
-        if self.relayed_payload.Bt and self.relayed_payload.Bt != 'Profile':
             # callback
             callback = self.CallBack.copy(payload=self.relayed_payload, dad='Profile')
             callback.payload.del_attr(attr='Ks').del_attr(attr='sl').del_attr(attr='pg')
+            # back to Profile button
             self.Page.add_button(model='BBck', row=2, callback=callback)
-        # back to Profile (profile)
-        elif self.relayed_payload.Bt == 'Profile':
-            self.Page.add_button(model='BBck', row=2, callback=self.CallBack.create(dad='Profile'))
-        # back to MM (mm/command)
+
+        # from admin_panel -> keys                  AdminPanel view
+        elif self.relayed_payload.Bt == 'AdminPanel':
+            user_keys = await get_keys_left_join_user()
+            # back to AdminPanel button     
+            self.Page.add_button(model='BBck', row=2, callback=self.CallBack.create(dad='AdminPanel'))
+
+        # from main_menu/command -> keys            MainMenu view
         else:
+            user_keys = await get_user_left_join_keys(tlg_id=self.User.chat_id)
+            # back to MainMenu button     
             self.Page.add_button(model='BBck', row=2, title='В меню', callback=self.CallBack.create(dad='MM'))
 
         # return
         if not user_keys or not len(user_keys):
             return
 
-        # username for admin mode
-        if self.self_profile['user_lvl'] > 0:
+        # max generate keys for UsersAdmins and MainMenu views
+        if not self.relayed_payload.Bt or self.relayed_payload.Bt == 'UsersAdmins':
+            max_keys = MAX_CLIENT_KEYS
+            if user_keys[0]['is_banned']:
+                max_keys = -1
+            elif self.self_profile['user_lvl'] == 1:
+                max_keys = MAX_ADMINS_KEYS
+            elif self.self_profile['user_lvl'] > 1:
+                max_keys = 99
+            is_block = len(user_keys) >= max_keys
+
+        # UsersAdmins view
+        if self.self_profile['user_lvl'] > 0 and self.relayed_payload.Bt == 'UsersAdmins':
             # username
             username = f"@{user_keys[0]['username']}" if user_keys[0]['username'] else user_keys[0]['tlg_id']
             level = '(пользователь)'
@@ -50,25 +61,14 @@ class Keys(Window):
             elif user_keys[0]['is_banned'] == 1:
                 level = '(забанен)'
             self.Page.Content.title =  f"{username} {level}"
-            # tittle for new key button
-            new_key_title = 'Добавить ключ'
-        else:
-            # tittle for new key button
-            new_key_title = 'Новый ключ'
-
-        # max generate keys
-        max_keys = MAX_CLIENT_KEYS
-        if user_keys[0]['is_banned']:
-            max_keys = -1
-        elif self.self_profile['user_lvl'] == 1:
-            max_keys = MAX_ADMINS_KEYS
-        elif self.self_profile['user_lvl'] > 1:
-            max_keys = 99
-        is_block = len(user_keys) >= max_keys
-
-        # new key button
-        self.Page.add_button(model='NewKey', row=2, title=new_key_title, callback=self.CallBack.copy(payload=self.relayed_payload), block=is_block, answer='cant_create_key')
+            # new key button
+            self.Page.add_button(model='NewKey', row=2, title='Добавить ключ', callback=self.CallBack.copy(payload=self.relayed_payload), block=is_block, answer='cant_create_key')
         
+        # MainMenu view
+        elif not self.relayed_payload.Bt:
+            # new key button
+            self.Page.add_button(model='NewKey', row=2, callback=self.CallBack.copy(payload=self.relayed_payload), block=is_block, answer='cant_create_key')
+     
         # return immediately
         if not user_keys or not len(user_keys) or not user_keys[0]['cid']:
             return
@@ -103,10 +103,14 @@ class Keys(Window):
         # get key button
         self.Page.add_button(model='GetKey', row=1, callback=callback, block=(not self.relayed_payload.sl), answer='key_not_select')
 
+        # profile button for AdminPanel view
+        if self.relayed_payload.Bt == 'AdminPanel':
+            self.Page.add_button(model='Profile', row=2, title='Владелец', callback=callback, block=(not self.relayed_payload.sl), answer='user_admin_not_select')
+
 
     def content_setter(self, item: dict) -> tuple[str, str]:
         # admin view for profile keys or user view
-        if self.self_profile['user_lvl'] > 0 and self.relayed_payload.Us or self.self_profile['user_lvl'] < 1:
+        if not self.relayed_payload.Bt or self.relayed_payload.Bt == 'UsersAdmins':
             # header
             header = item['uuid']
             # key info
@@ -121,42 +125,29 @@ class Keys(Window):
         # admin view for all keys
         else:
             # header
-            header = item['uuid']
-            # key info
+            header = item['email']
+            # user info
+            user_type = 'пользователь'
+            if item['user_lvl'] == -1:
+                user_type = 'пользователь (разжалован)'
+            elif item['user_lvl'] > 0:
+                user_type = f"администратор ({item['user_lvl']}ур.)"
+            elif item['user_lvl'] == 1:
+                user_type = 'пользователь (забанен)'
+            user_type = f"Клиент: {user_type}"
+            username = f"@{item['username']}" if item['username'] else item['tlg_id']
+            user = f"Имя/id: {username}"
             key_status = f"Состояние ключа: включен" if item['is_enabled'] else f"Состояние: отключен"
+            # key info
+            uuid = f"UUID: {item['uuid']}"
             level = f"Уровень: {item['level']}"
             created_at = f"Создан: {item['clients_created_at']}"
-            full_info = f"{key_status}\n{created_at}"
-            if self.self_profile['user_lvl'] > 0:
-                full_info = f"{key_status}\n{level}\n{created_at}"
+            # full info
+            user_info = f"{user}\n{user_type}\n{key_status}"
+            key_info = f"{uuid}\n{level}\n{created_at}"
+            full_info = f"{user_info}\n\n{key_info}"
             # footer
             footer = self.Page.Content.html(full_info).quote_exp()
-
-            # # header
-            # header = item['email']
-            # # user info
-            # user_type = 'пользователь'
-            # if item['user_lvl'] == -1:
-            #     user_type = 'пользователь (разжалован)'
-            # elif item['user_lvl'] > 0:
-            #     user_type = f"администратор ({item['user_lvl']}ур.)"
-            # elif item['user_lvl'] == 1:
-            #     user_type = 'пользователь (забанен)'
-            # user_type = f"Клиент: {user_type}"
-            # username = f"@{item['username']}" if item['username'] else item['tlg_id']
-            # user = f"Имя/id: {username}"
-            # key_status = f"Состояние ключа: включен" if item['is_enabled'] else f"Состояние: отключен"
-            # # key info
-            # uuid = f"UUID: {item['uuid']}"
-            # level = f"Уровень: {item['level']}"
-            # created_at = f"Создан: {item['clients_created_at']}"
-            # # full info
-            # user_info = f"{user}\n{user_type}\n{key_status}"
-            # key_info = f"{uuid}\n{level}\n{created_at}"
-            # full_info = f"{user_info}\n\n{key_info}"
-            # # footer
-            # footer = self.Page.Content.html(full_info).quote_exp()
-            
         return header, footer
 
     def id_getter(self, item: dict) -> None:
