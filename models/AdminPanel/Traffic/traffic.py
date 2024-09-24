@@ -8,6 +8,7 @@ class Traffic(Window):
         super().__init__(*args, **kwargs)
         self.Page.smile = '📈'
         self.Page.Content.title = 'Трафик'
+        self.Page.Content.text = 'Его нет'
 
     async def constructor(self) -> None:
         self.self_profile = await get_user(tlg_id=self.User.chat_id)
