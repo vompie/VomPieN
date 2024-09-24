@@ -1,7 +1,6 @@
 from TeleVompy.Interface.window import Window
 
-from settings import BOT_NAME, BOT_SMILE, MAX_CLIENT_KEYS, MAX_ADMINS_KEYS
-from settings import TEMPLATE_KEY
+from settings import BOT_NAME, BOT_SMILE, MAX_CLIENT_KEYS, MAX_ADMINS_KEYS, TEMPLATE_KEY
 from database.sql import get_user, get_user_left_join_keys, get_user_left_join_keys_by_user_id, get_user_by_key_id, get_client
 
 from add_client import add_client
