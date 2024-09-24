@@ -221,3 +221,19 @@ async def get_user_left_join_keys_by_user_id(id: int) -> bool | aiosqlite.Row:
     selectable = f"{user_selectable}, {client_selectable}"
     sql_query = f"SELECT {selectable} FROM users LEFT JOIN clients ON users.tlg_id = clients.tlg_id WHERE users.id = ?"
     return await execute_selection_query(sql_query, (id, ))
+
+# get user by key id
+async def get_user_by_key_id(id: int) -> bool | aiosqlite.Row:
+    user_selectable = 'users.id as id, users.tlg_id, username, user_lvl, is_banned, referals, users.created_at as created_at'
+    selectable = f"{user_selectable}"
+    sql_query = f"SELECT {selectable} FROM users LEFT JOIN clients ON users.tlg_id = clients.tlg_id WHERE clients.id = ?"
+    user = await execute_selection_query(sql_query, (id, ))
+    return user[0] if user else False
+
+# get all keys left join user
+async def get_keys_left_join_user() -> bool | aiosqlite.Row:
+    user_selectable = 'users.id as uid, users.tlg_id, username, user_lvl, is_banned, referals, users.created_at as users_created_at'
+    client_selectable = 'clients.id as cid, uuid, email, level, key, is_enabled, clients.created_at as clients_created_at'
+    selectable = f"{user_selectable}, {client_selectable}"
+    sql_query = f"SELECT {selectable} FROM clients LEFT JOIN users ON clients.tlg_id = users.tlg_id"
+    return await execute_selection_query(sql_query, tuple())
