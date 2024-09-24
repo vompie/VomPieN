@@ -82,7 +82,7 @@ class Keys(Window):
         self.Pagination.add(dataset=user_keys, content_setter=self.content_setter, id_getter=self.id_getter)
 
         # server info
-        server_info = self.Page.Content.html(self.server_info()).quote_exp()
+        server_info = self.Page.Content.html(self.server_info(is_admin=self.self_profile['user_lvl'] > 0)).quote_exp()
         self.Page.Content.text += f"{server_info}"
 
         # callback
@@ -154,16 +154,16 @@ class Keys(Window):
         return item['cid']
 
     @staticmethod
-    def server_info() -> str:
+    def server_info(is_admin: bool = False) -> str:
         from settings import BOT_NAME, BOT_SMILE, PROTOCOL, SERVER_IP, SERVER_PORT, SERVER_TYPE, SECURITY, ALPN, FINGERPRINT, PACKET_ENCODING
         
         title = f'Дополнительные данные для подключения к {BOT_NAME} {BOT_SMILE}'
         protocol = f"Protocol: {PROTOCOL}"
-        ip = f'IP: {SERVER_IP}:{SERVER_PORT}'
+        ip = f'IP: {SERVER_IP}:{SERVER_PORT}\n' if is_admin else ''
         server_type = f"Type: {SERVER_TYPE}"
         security = f"Security: {SECURITY}"
         alpn = f"Alpn: {ALPN}"
         fp = f"Finger print: {FINGERPRINT}"
         packetEncoding = f"Packet encoding: {PACKET_ENCODING}"
-        server_info = f"{title}\n\n{protocol}\n{ip}\n{server_type}\n{security}\n{alpn}\n{fp}\n{packetEncoding}"
+        server_info = f"{title}\n\n{protocol}\n{ip}{server_type}\n{security}\n{alpn}\n{fp}\n{packetEncoding}"
         return server_info

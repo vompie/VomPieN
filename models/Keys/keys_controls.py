@@ -1,7 +1,8 @@
 from TeleVompy.Interface.window import Window
 
 from settings import BOT_NAME, BOT_SMILE, MAX_CLIENT_KEYS, MAX_ADMINS_KEYS
-from database.sql import get_user, get_user_left_join_keys, get_user_left_join_keys_by_user_id, get_user_by_key_id
+from settings import TEMPLATE_KEY
+from database.sql import get_user, get_user_left_join_keys, get_user_left_join_keys_by_user_id, get_user_by_key_id, get_client
 
 from add_client import add_client
 from delete_client import delete_client
@@ -84,8 +85,16 @@ class GetKey(Window):
         self.Action.action_type = "send"
 
     async def constructor(self) -> None:
-        self.Page.Content.title = f'Ключ доступа к {BOT_NAME} {BOT_SMILE}'
-        self.Page.Content.text = 'Текст'
+        self.Page.Content.title = f'Ключ к {BOT_NAME} {BOT_SMILE}'
+
+        # get key
+        key = await get_client(id=self.relayed_payload.Ks)
+        if not key['is_enabled']:
+            return
+        
+        # get uri for key
+        key_uri = TEMPLATE_KEY.replace('UUID_KEY_HERE', key['uuid'])
+        self.Page.Content.text = self.Page.Content.html(key_uri).code()
         self.Page.add_button(model='BYes')
 
 

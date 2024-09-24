@@ -17,6 +17,7 @@ ADMIN_SECRET_KEY: str = os.getenv("ADMIN_SECRET_KEY")
 MAX_CLIENT_KEYS: int = 2
 MAX_ADMINS_KEYS: int = 5
 
+
 DB_FILE: str = os.path.join(PROJECT_DIR, 'database/base.db').replace('\\', '/')
 DEFAULT_VLESS_FILE: str = os.path.join(PROJECT_DIR, 'xray_service/default_vless.json').replace('\\', '/')
 VLESS_FILE: str = os.path.join(XRAY_DIR, 'confs/vless_inbounds.json').replace('\\', '/')
@@ -31,8 +32,10 @@ PACKET_ENCODING: str = 'xudp'
 
 SERVER_IP: str = os.getenv("SERVER_IP")
 SERVER_PORT: str = os.getenv("VLESS_PORT")
-SNI: str = os.getenv("REALITY_DEST")
+SNI: str = os.getenv("REALITY_SERVER_NAMES")
 HOST: str = os.getenv("HTTP_HOST")
 PATH: str = os.getenv("HTTP_PATH")
 PUBLICK_KEY: str = os.getenv("REALITY_PUBLICK_KEY")
 ENCRYPTION: str = os.getenv("SERVER_ENCRYPTION")
+
+TEMPLATE_KEY: str = f'{PROTOCOL}://UUID_KEY_HERE@{SERVER_IP}:{SERVER_PORT}/?encryption={ENCRYPTION}&type={SERVER_TYPE}&sni={SNI}&host={HOST}&path={PATH}&fp={FINGERPRINT}&security={SECURITY}&alpn={ALPN}&pbk={PUBLICK_KEY}&packetEncoding={PACKET_ENCODING}#{BOT_NAME}'
