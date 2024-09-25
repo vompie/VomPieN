@@ -31,7 +31,7 @@ async def get_default_vless(file: str) -> dict:
     vless = inbounds['inbounds'][0]
     """ Set the default secret vless parameters """
     vless['listen'] = os.getenv('SERVER_IP')
-    vless['port'] = os.getenv('VLESS_PORT')
+    vless['port'] = int(os.getenv('VLESS_PORT'))
     vless['streamSettings']['httpSettings']['host'] = [os.getenv('HTTP_HOST')]
     vless['streamSettings']['httpSettings']['path'] = os.getenv('HTTP_PATH')
     vless['streamSettings']['realitySettings']['dest'] = os.getenv('REALITY_DEST')
