@@ -1,4 +1,4 @@
-import os, shutil, aiofiles
+import os, shutil, aiofiles, subprocess
 from json import loads, dumps
 from uuid import uuid1
 
@@ -9,6 +9,19 @@ async def prepare_server(file: str) -> dict:
     """ Prepare the server """
     await create_database()
     return await get_default_vless(file=file)
+
+async def apply_changes_server(from_file: str, to_file: str) -> bool:
+    """ Apply changes to the server """
+    # reboot server
+    reboot_result = await reboot_server()
+    if not reboot_result:
+        # recovery server
+        recovery_result = await recovery_server(from_file=from_file, to_file=to_file)
+        if not recovery_result:
+            print("Pzdc, that's all")
+        return False
+    return True
+
 
 
 async def get_default_vless(file: str) -> dict:
@@ -41,6 +54,7 @@ async def make_and_save_vless(vless: dict, from_file: str, to_file: str) -> bool
     return True
 
 
+
 async def create_and_save_client(tlg_id: str, level: int, enabled: bool = True) -> bool | int:
     """ Save a new client to the database """
     return await add_new_client(tlg_id=tlg_id, uuid=str(uuid1()), email=f"{tlg_id}@telegram.id", level=level, enabled=enabled)
@@ -56,6 +70,7 @@ async def upd_client(id: int, columns: list, values: list) -> bool:
 async def upd_client_by_tlg_id(tlg_id: int, columns: list, values: list) -> bool:
     """ Update a client status in the database """
     return await update_client_by_tlg_id(tlg_id=tlg_id, columns=columns, values=values)       
+
 
 
 async def make_new_vless(vless: dict, enabled: bool | None = True) -> dict:
@@ -82,12 +97,28 @@ async def save_vless_file(vless: dict, file: str) -> bool:
     return True
 
 
+
+async def execute_command(command: str) -> bool:
+    """ Execute a command """
+    try:
+        result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True)
+        if result.returncode == 0:
+            print(result.stdout)
+            return True
+        else:
+            print(result.stderr)
+            return False
+    except Exception as e:
+        print(f"Use command '{command}' error: {e}")
+        return False
+
 async def reboot_server() -> bool:
-    # restart xray
-    # check status
-    print('Nu tipa OK')
-    return True
-    # back copy of last vless file
-    # copy_result: bool = make_copy_vless(old_file=LASTCOPY_VLESS_FILE, new_file=NEW_VLESS_FILE)
-    # restart xray
-    return False
+    """ Reboot the server """
+    return await execute_command(command='systemctl restart xray')
+
+async def recovery_server(from_file: str, to_file: str) -> bool:
+    """ Recovery the server """
+    copy_result: bool = make_copy_vless(from_file=from_file, to_file=to_file)
+    if not copy_result:
+        return False
+    return await reboot_server()

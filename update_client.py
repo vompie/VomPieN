@@ -1,7 +1,7 @@
 import asyncio
 
 from settings import DEFAULT_VLESS_FILE, VLESS_FILE, COPY_VLESS_FILE
-from xray_service.utils import prepare_server, upd_client, upd_client_by_tlg_id, make_and_save_vless, reboot_server
+from xray_service.utils import prepare_server, upd_client, upd_client_by_tlg_id, make_and_save_vless, apply_changes_server
 
 
 async def update_client(tlg_id: int, enabled: bool) -> bool:
@@ -18,9 +18,8 @@ async def update_client(tlg_id: int, enabled: bool) -> bool:
     if not result_vless_file:
         return False
 
-    # reboot xray
-    reboot_result = await reboot_server()
-    return reboot_result
+    # apply changes
+    return apply_changes_server(from_file=COPY_VLESS_FILE, to_file=VLESS_FILE)
 
 
 async def update_client_by_key_id(id: int, enabled: bool) -> bool:
@@ -37,9 +36,8 @@ async def update_client_by_key_id(id: int, enabled: bool) -> bool:
     if not result_vless_file:
         return False
 
-    # reboot xray
-    reboot_result = await reboot_server()
-    return reboot_result
+    # apply changes
+    return apply_changes_server(from_file=COPY_VLESS_FILE, to_file=VLESS_FILE)
 
 
 if __name__ == "__main__":
