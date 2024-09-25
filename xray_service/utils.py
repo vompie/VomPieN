@@ -14,12 +14,12 @@ async def apply_changes_server(from_file: str, to_file: str) -> bool:
     """ Apply changes to the server """
     # reboot server
     reboot_result = await reboot_server()
-    if not reboot_result:
-        # recovery server
-        recovery_result = await recovery_server(from_file=from_file, to_file=to_file)
-        if not recovery_result:
-            print("Pzdc, that's all")
-        return False
+    # if not reboot_result:
+    #     # recovery server
+    #     recovery_result = await recovery_server(from_file=from_file, to_file=to_file)
+    #     if not recovery_result:
+    #         print("Pzdc, that's all")
+    #     return False
     return True
 
 
