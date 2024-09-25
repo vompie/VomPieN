@@ -58,7 +58,7 @@ async def make_and_save_vless(vless: dict, from_file: str, to_file: str) -> bool
 async def create_and_save_client(tlg_id: str, level: int, enabled: bool = True) -> bool | int:
     """ Save a new client to the database """
     uuid = str(uuid1())
-    return await add_new_client(tlg_id=tlg_id, uuid=uuid, email=f"{tlg_id}#{uuid[:3]}@telegram.id", level=level, enabled=enabled)
+    return await add_new_client(tlg_id=tlg_id, uuid=uuid, email=f"{tlg_id}_{uuid[:3]}@telegram.id", level=level, enabled=enabled)
 
 async def delete_client_by_id(id: int) -> bool:
     """ Delete a client from the database """
