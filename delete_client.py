@@ -9,7 +9,7 @@ async def delete_client(id: int) -> bool:
     vless: dict = await prepare_server(file=DEFAULT_VLESS_FILE)
 
     # delete client
-    delete_result = await delete_client_by_id(id=id)
+    delete_result: bool = await delete_client_by_id(id=id)
     if not delete_result:
         return False
     

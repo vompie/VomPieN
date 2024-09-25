@@ -58,7 +58,7 @@ async def make_and_save_vless(vless: dict, from_file: str, to_file: str) -> bool
 async def create_and_save_client(tlg_id: str, level: int, enabled: bool = True) -> bool | int:
     """ Save a new client to the database """
     uuid = str(uuid1())
-    return await add_new_client(tlg_id=tlg_id, uuid=uuid, email=f"{tlg_id}_{uuid[:3]}@telegram.id", level=level, enabled=enabled)
+    return await add_new_client(tlg_id=tlg_id, uuid=uuid, email=f"{tlg_id}_{uuid[:5]}@telegram.com", level=level, enabled=enabled)
 
 async def delete_client_by_id(id: int) -> bool:
     """ Delete a client from the database """
@@ -78,7 +78,7 @@ async def make_new_vless(vless: dict, enabled: bool | None = True) -> dict:
     """ Get clients all / enabled / disabled """
     clients = await get_clients(type=enabled)
     """ Make a new vless configuration file with the given clients """
-    all_clients = [{"id": client['uuid'], "email": client['email'], "level": client['level']} for client in clients]
+    all_clients = [{"id": client['uuid'], "email": client['email']} for client in clients]
     vless['settings']['clients'] = all_clients
     return vless
 
@@ -93,9 +93,8 @@ async def make_copy_vless(from_file: str, to_file: str) -> bool:
 
 async def save_vless_file(vless: dict, file: str) -> bool:
     """ Save the vless configuration file """
-    full_vless = {"inbounds": [vless]}
     async with aiofiles.open(file, 'w') as f:
-        await f.write(dumps(full_vless))
+        await f.write(dumps({"inbounds": [vless]}))
     return True
 
 
@@ -116,9 +115,7 @@ async def execute_command(command: str) -> bool:
 
 async def reboot_server() -> bool:
     """ Reboot the server """
-    execute_result = await execute_command(command='systemctl restart xray')
-    print('reboot server', execute_result)
-    return True
+    return await execute_command(command='systemctl restart xray')
 
 async def recovery_server(from_file: str, to_file: str) -> bool:
     """ Recovery the server """
