@@ -45,12 +45,10 @@ async def make_and_save_vless(vless: dict, from_file: str, to_file: str) -> bool
     vless: dict = await make_new_vless(vless=vless, enabled=True)
     # copy last vless file
     copy_result: bool = await make_copy_vless(from_file=from_file, to_file=to_file)
-    print("COPY OK")
     if not copy_result:
         return False
     # save new vless file
     save_result: bool = await save_vless_file(vless=vless, file=from_file)
-    print(f'SAVE OK')
     if not save_result:
         return False
     return True
@@ -105,10 +103,10 @@ async def execute_command(command: str) -> bool:
     try:
         result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True)
         if result.returncode == 0:
-            print(result.stdout)
+            print('stdout', result.stdout)
             return True
         else:
-            print(result.stderr)
+            print('stderr', result.stderr)
             return False
     except Exception as e:
         print(f"Use command '{command}' error: {e}")
@@ -117,7 +115,7 @@ async def execute_command(command: str) -> bool:
 async def reboot_server() -> bool:
     """ Reboot the server """
     execute_result = await execute_command(command='systemctl restart xray')
-    print('HERE', execute_result)
+    print('reboot server', execute_result)
     return True
 
 async def recovery_server(from_file: str, to_file: str) -> bool:
