@@ -92,8 +92,9 @@ async def make_copy_vless(from_file: str, to_file: str) -> bool:
 
 async def save_vless_file(vless: dict, file: str) -> bool:
     """ Save the vless configuration file """
+    full_vless = {"inbounds": [vless]}
     async with aiofiles.open(file, 'w') as f:
-        await f.write(dumps(vless))
+        await f.write(dumps(full_vless))
     return True
 
 
