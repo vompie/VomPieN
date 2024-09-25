@@ -114,11 +114,13 @@ async def execute_command(command: str) -> bool:
 
 async def reboot_server() -> bool:
     """ Reboot the server """
-    return await execute_command(command='systemctl restart xray')
+    execute_result = await execute_command(command='systemctl restart xray')
+    print('HERE', execute_result)
+    return True
 
 async def recovery_server(from_file: str, to_file: str) -> bool:
     """ Recovery the server """
-    copy_result: bool = make_copy_vless(from_file=from_file, to_file=to_file)
+    copy_result: bool = await make_copy_vless(from_file=from_file, to_file=to_file)
     if not copy_result:
         return False
     return await reboot_server()
