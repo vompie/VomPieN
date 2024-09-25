@@ -115,7 +115,7 @@ async def execute_command(command: str) -> bool:
 
 async def reboot_server() -> bool:
     """ Reboot the server """
-    return await execute_command(command='systemctl restart xray')
+    return await execute_command(command='/usr/bin/systemctl restart xray')
 
 async def recovery_server(from_file: str, to_file: str) -> bool:
     """ Recovery the server """
