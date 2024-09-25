@@ -19,7 +19,7 @@ async def add_client(tlg_id: int, level: int = 1) -> bool:
         return False
 
     # apply changes
-    return apply_changes_server(from_file=COPY_VLESS_FILE, to_file=VLESS_FILE)
+    return await apply_changes_server(from_file=COPY_VLESS_FILE, to_file=VLESS_FILE)
 
 
 if __name__ == "__main__":

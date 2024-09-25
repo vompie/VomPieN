@@ -19,7 +19,7 @@ async def update_client(tlg_id: int, enabled: bool) -> bool:
         return False
 
     # apply changes
-    return apply_changes_server(from_file=COPY_VLESS_FILE, to_file=VLESS_FILE)
+    return await apply_changes_server(from_file=COPY_VLESS_FILE, to_file=VLESS_FILE)
 
 
 async def update_client_by_key_id(id: int, enabled: bool) -> bool:
@@ -37,7 +37,7 @@ async def update_client_by_key_id(id: int, enabled: bool) -> bool:
         return False
 
     # apply changes
-    return apply_changes_server(from_file=COPY_VLESS_FILE, to_file=VLESS_FILE)
+    return await apply_changes_server(from_file=COPY_VLESS_FILE, to_file=VLESS_FILE)
 
 
 if __name__ == "__main__":
