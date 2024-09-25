@@ -16,7 +16,7 @@ ADMIN_SECRET_KEY: str = os.getenv("ADMIN_SECRET_KEY")
 
 MAX_CLIENT_KEYS: int = 2
 MAX_ADMINS_KEYS: int = 5
-
+ALLOW_GENERATE: bool = int(os.getenv('ALLOW_GENERATE')) if os.getenv('ALLOW_GENERATE') else False
 
 DB_FILE: str = os.path.join(PROJECT_DIR, 'database/base.db').replace('\\', '/')
 DEFAULT_VLESS_FILE: str = os.path.join(PROJECT_DIR, 'xray_service/default_vless.json').replace('\\', '/')
@@ -28,6 +28,7 @@ SERVER_TYPE: str = 'http'
 FINGERPRINT: str = 'random'
 SECURITY: str = 'reality'
 ALPN: str = 'h2'
+OBFS: str = 'h2'
 PACKET_ENCODING: str = 'xudp'
 
 SERVER_IP: str = os.getenv("SERVER_IP")
@@ -38,4 +39,4 @@ PATH: str = os.getenv("HTTP_PATH")
 PUBLICK_KEY: str = os.getenv("REALITY_PUBLICK_KEY")
 ENCRYPTION: str = os.getenv("SERVER_ENCRYPTION")
 
-TEMPLATE_KEY: str = f'{PROTOCOL}://UUID_KEY_HERE@{SERVER_IP}:{SERVER_PORT}/?encryption={ENCRYPTION}&type={SERVER_TYPE}&sni={SNI}&host={HOST}&path={PATH}&fp={FINGERPRINT}&security={SECURITY}&alpn={ALPN}&obfs={ALPN}&pbk={PUBLICK_KEY}&packetEncoding={PACKET_ENCODING}#{BOT_NAME}'
+TEMPLATE_KEY: str = f'{PROTOCOL}://UUID_KEY_HERE@{SERVER_IP}:{SERVER_PORT}/?encryption={ENCRYPTION}&type={SERVER_TYPE}&sni={SNI}&host={HOST}&path={PATH}&fp={FINGERPRINT}&security={SECURITY}&alpn={ALPN}&obfs={OBFS}&pbk={PUBLICK_KEY}&packetEncoding={PACKET_ENCODING}#{BOT_NAME}'

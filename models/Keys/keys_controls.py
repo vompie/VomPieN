@@ -1,6 +1,6 @@
 from TeleVompy.Interface.window import Window
 
-from settings import BOT_NAME, BOT_SMILE, MAX_CLIENT_KEYS, MAX_ADMINS_KEYS, TEMPLATE_KEY
+from settings import BOT_NAME, BOT_SMILE, MAX_CLIENT_KEYS, MAX_ADMINS_KEYS, TEMPLATE_KEY, ALLOW_GENERATE
 from database.sql import get_user, get_user_left_join_keys, get_user_left_join_keys_by_user_id, get_user_by_key_id, get_client
 
 from add_client import add_client
@@ -50,6 +50,12 @@ class NewKey(Window):
         if len(user_keys) >= max_keys:
             return
         
+        # is allow generate new key
+        if not ALLOW_GENERATE and self.self_profile['user_lvl'] < 1:
+            from bot_service.utils import send_msg
+            await send_msg(chat_id=user_keys[0]['tlg_id'], model='InfoMsg', title='Генерация ключей отключена', text='В данный момент генерация ключей недоступна. Обратись к администратору')
+            return
+
         # add new key
         add_client_result = await add_client(tlg_id=user_keys[0]['tlg_id'])
         if not add_client_result:
