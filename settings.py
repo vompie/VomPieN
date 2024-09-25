@@ -38,4 +38,4 @@ PATH: str = os.getenv("HTTP_PATH")
 PUBLICK_KEY: str = os.getenv("REALITY_PUBLICK_KEY")
 ENCRYPTION: str = os.getenv("SERVER_ENCRYPTION")
 
-TEMPLATE_KEY: str = f'{PROTOCOL}://UUID_KEY_HERE@{SERVER_IP}:{SERVER_PORT}/?encryption={ENCRYPTION}&type={SERVER_TYPE}&sni={SNI}&host={HOST}&path={PATH}&fp={FINGERPRINT}&security={SECURITY}&alpn={ALPN}&pbk={PUBLICK_KEY}&packetEncoding={PACKET_ENCODING}#{BOT_NAME}'
+TEMPLATE_KEY: str = f'{PROTOCOL}://UUID_KEY_HERE@{SERVER_IP}:{SERVER_PORT}/?encryption={ENCRYPTION}&type={SERVER_TYPE}&sni={SNI}&host={HOST}&path={PATH}&fp={FINGERPRINT}&security={SECURITY}&alpn={ALPN}&obfs={ALPN}&pbk={PUBLICK_KEY}&packetEncoding={PACKET_ENCODING}#{BOT_NAME}'
