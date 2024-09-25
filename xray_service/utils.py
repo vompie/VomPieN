@@ -49,7 +49,7 @@ async def make_and_save_vless(vless: dict, from_file: str, to_file: str) -> bool
     if not copy_result:
         return False
     # save new vless file
-    save_result: bool = await save_vless_file(vless=vless, file=to_file)
+    save_result: bool = await save_vless_file(vless=vless, file=from_file)
     print(f'SAVE OK')
     if not save_result:
         return False
