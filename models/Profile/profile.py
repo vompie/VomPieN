@@ -17,7 +17,7 @@ class Profile(Window):
         if self.relayed_payload.Bt == 'UsersAdmins':
             user_keys = await get_user_left_join_keys_by_user_id(id=self.relayed_payload.Us)
         # from keys -> admin
-        if self.relayed_payload.Bt == 'AdminPanel':
+        elif self.relayed_payload.Bt == 'AdminPanel':
             user = await get_user_by_key_id(id=self.relayed_payload.Ks)
             user_keys = await get_user_left_join_keys(tlg_id=user['tlg_id'])
         # from main menu/command -> user
