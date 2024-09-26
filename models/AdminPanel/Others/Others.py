@@ -22,7 +22,7 @@ class Others(Window):
         
         self.Page.add_button(model='InviteAdmin', row=0, title='Администратор')
         self.Page.add_button(model='InviteUser', row=0, title='Пользователь')
-        self.Page.add_button(model='InviteByKey', row=1, title='Вступительный ключ')
+        self.Page.add_button(model='InviteByKey', row=1, title='Ключ')
         self.Page.add_button(model='RebootSrv', row=1)
         self.Page.add_button(model='BBck', row=2, callback=self.CallBack.create(dad='AdminPanel'))
         # self.Page.add_button(model='BBck', row=2, title='Поиск пользователя')
@@ -105,7 +105,7 @@ class RebootSrv(Window):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.Page.smile = '🔄'
-        self.Page.Content.title = f'Перезагрузить сервер'
+        self.Page.Content.title = f'Перезагрузить'
         self.Action.action_type = "toggle"
 
     async def constructor(self) -> None:
