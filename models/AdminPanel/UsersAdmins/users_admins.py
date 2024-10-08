@@ -7,16 +7,14 @@ class UsersAdmins(Window):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.Page.smile = '👥' # '🧙🏻'
-        self.Page.Content.title = 'Пользователи' # 'Администраторы'
+        self.Page.Content.title = 'Пользователи' # and 'Администраторы'
 
     async def constructor(self) -> None:
         self.self_profile = await get_user(tlg_id=self.User.chat_id)
 
         # check admin mode
         if not self.self_profile or self.self_profile['user_lvl'] < 1:
-            self.Action.action_type = 'redirect'
-            self.Action.redirect_to = 'MM'
-            return
+            return self.Action.set_action(ActionType=self.Action.types.REDIRECT, redirect_to='MM')
         
         # users or admins
         is_admins = True if self.relayed_payload.Adm else False
@@ -37,7 +35,7 @@ class UsersAdmins(Window):
         # setup select
         if self.relayed_payload.Us:
             self.relayed_payload.sl = self.relayed_payload.Us
-            self.relayed_payload_del_attr(attr='Us')
+            self.relayed_payload_del_attrs(attrs=['Us'])
             
         # pagination
         self.Pagination.add(dataset=users_admins, content_setter=self.content_setter, id_getter=self.id_getter)

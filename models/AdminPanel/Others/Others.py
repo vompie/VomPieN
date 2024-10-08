@@ -16,9 +16,7 @@ class Others(Window):
 
         # check admin mode
         if not self.self_profile or self.self_profile['user_lvl'] < 2:
-            self.Action.action_type = 'redirect'
-            self.Action.redirect_to = 'MM'
-            return
+            return self.Action.set_action(ActionType=self.Action.types.REDIRECT, redirect_to='MM')
         
         self.Page.add_button(model='InviteAdmin', row=0, title='Администратор')
         self.Page.add_button(model='InviteUser', row=0, title='Пользователь')
@@ -33,16 +31,14 @@ class InviteAdmin(Window):
         super().__init__(*args, **kwargs)
         self.Page.smile = '💌'
         self.Page.Content.title = f'Приглашение стать администратором в {BOT_NAME} {BOT_SMILE}'
-        self.Action.action_type = "send"
+        self.Action.set_action(ActionType=self.Action.types.SEND)
 
     async def constructor(self) -> None:
         self.self_profile = await get_user(tlg_id=self.User.chat_id)
         
         # check admin mode
         if not self.self_profile or self.self_profile['user_lvl'] < 2:
-            self.Action.action_type = 'redirect'
-            self.Action.redirect_to = 'MM'
-            return
+            return self.Action.set_action(ActionType=self.Action.types.REDIRECT, redirect_to='MM')
 
         from bot_service.utils import new_deeplink
         deeplink = await new_deeplink(tlg_id=self.User.chat_id, type='new_admin')
@@ -57,18 +53,11 @@ class InviteUser(Window):
         super().__init__(*args, **kwargs)
         self.Page.smile = '📧'
         self.Page.Content.title = f'Приглашение в {BOT_NAME} {BOT_SMILE}'
-        self.Action.action_type = "send"
+        self.Action.set_action(ActionType=self.Action.types.SEND)
 
     async def constructor(self) -> None:
         self.self_profile = await get_user(tlg_id=self.User.chat_id)
         
-        # check admin mode
-        if not self.self_profile or self.self_profile['user_lvl'] < 2:
-            self.Action.action_type = 'redirect'
-            self.Action.redirect_to = 'MM'
-            return
-
-
         from bot_service.utils import new_deeplink
         deeplink = await new_deeplink(tlg_id=self.User.chat_id, type='new_user')
         self.Page.Content.text = 'Пумпумпум... ошибочка вышла'
@@ -82,16 +71,14 @@ class InviteByKey(Window):
         super().__init__(*args, **kwargs)
         self.Page.smile = '✉️'
         self.Page.Content.title = f'Получить новый ключ'
-        self.Action.action_type = "send"
+        self.Action.set_action(ActionType=self.Action.types.SEND)
 
     async def constructor(self) -> None:
         self.self_profile = await get_user(tlg_id=self.User.chat_id)
         
         # check admin mode
         if not self.self_profile or self.self_profile['user_lvl'] < 2:
-            self.Action.action_type = 'redirect'
-            self.Action.redirect_to = 'MM'
-            return
+            return self.Action.set_action(ActionType=self.Action.types.REDIRECT, redirect_to='MM')
 
         from bot_service.utils import new_deeplink
         deeplink = await new_deeplink(tlg_id=self.User.chat_id, type='new_key')
@@ -106,16 +93,17 @@ class RebootSrv(Window):
         super().__init__(*args, **kwargs)
         self.Page.smile = '🔄'
         self.Page.Content.title = f'Перезагрузить'
-        self.Action.action_type = "toggle"
+        self.Action.set_action(ActionType=self.Action.types.TOGGLE)
 
     async def constructor(self) -> None:
         self.self_profile = await get_user(tlg_id=self.User.chat_id)
 
         # check admin mode
         if not self.self_profile or self.self_profile['user_lvl'] < 2:
-            self.Action.action_type = 'redirect'
-            self.Action.redirect_to = 'MM'
-            return
+            return self.Action.set_action(ActionType=self.Action.types.REDIRECT, redirect_to='MM')
+
+        # add subseq message
+        self.SubsequentMessage.add(page=self.create_page(model_name='Info'))
 
         reboot_result = await reboot_server()
 

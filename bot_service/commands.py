@@ -27,7 +27,7 @@ async def cmd_start(message: Message):
     if not user:
         return await send_msg(message_query=message, model='ErrorMsg')
     await message.answer(text=f'Добро пожаловать в {BOT_NAME} {BOT_SMILE}', message_effect_id=settings.MessageEffectSettings.PETARD)
-    await cmd_menu(message=message)
+    await cmd_menu(message)
 
 
 # /menu

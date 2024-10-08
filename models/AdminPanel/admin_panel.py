@@ -14,9 +14,7 @@ class AdminPanel(Window):
 
         # check admin mode
         if not self.self_profile or self.self_profile['user_lvl'] < 1:
-            self.Action.action_type = 'redirect'
-            self.Action.redirect_to = 'MM'
-            return
+            return self.Action.set_action(ActionType=self.Action.types.REDIRECT, redirect_to='MM')
         
         self.Page.add_button(model='UsersAdmins', row=0)
         self.Page.add_button(model='Traffic', row=0)

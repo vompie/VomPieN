@@ -10,16 +10,14 @@ class BanUser(Window):
         super().__init__(*args, **kwargs)
         self.Page.smile = '☠️'
         self.Page.Content.title = 'Забанить'
-        self.Action.action_type = "toggle"
+        self.Action.set_action(ActionType=self.Action.types.TOGGLE)
 
     async def constructor(self) -> None:
         self.self_profile = await get_user(tlg_id=self.User.chat_id)
 
         # check admin mode
         if not self.self_profile or self.self_profile['user_lvl'] < 1:
-            self.Action.action_type = 'redirect'
-            self.Action.redirect_to = 'MM'
-            return
+            return self.Action.set_action(ActionType=self.Action.types.REDIRECT, redirect_to='MM')
         
         # get user
         user = await get_user_by_id(id=self.relayed_payload.Us)
@@ -30,6 +28,10 @@ class BanUser(Window):
         update_result = await update_user(tlg_id=user['tlg_id'], columns=['is_banned', 'user_lvl'], values=[1, 0])
         if not update_result:
             return
+        
+        # add subseq message
+        self.SubsequentMessage.add(page=self.create_page(model_name='Info'))
+
         await update_client(tlg_id=user['tlg_id'], enabled=False)
 
         # send information message
@@ -42,16 +44,14 @@ class UnBanUser(Window):
         super().__init__(*args, **kwargs)
         self.Page.smile = '😇'
         self.Page.Content.title = 'Разбанить'
-        self.Action.action_type = "toggle"
+        self.Action.set_action(ActionType=self.Action.types.TOGGLE)
 
     async def constructor(self) -> None:
         self.self_profile = await get_user(tlg_id=self.User.chat_id)
 
         # check admin mode
         if not self.self_profile or self.self_profile['user_lvl'] < 1:
-            self.Action.action_type = 'redirect'
-            self.Action.redirect_to = 'MM'
-            return
+            return self.Action.set_action(ActionType=self.Action.types.REDIRECT, redirect_to='MM')
         
         # get user
         user = await get_user_by_id(id=self.relayed_payload.Us)
@@ -62,6 +62,10 @@ class UnBanUser(Window):
         update_result = await update_user(tlg_id=user['tlg_id'], columns=['is_banned', 'user_lvl'], values=[0, 0])
         if not update_result:
             return
+        
+        # add subseq message
+        self.SubsequentMessage.add(page=self.create_page(model_name='Info'))
+
         await update_client(tlg_id=user['tlg_id'], enabled=True)
         
         # send information message
@@ -74,16 +78,14 @@ class PromotionAdmin(Window):
         super().__init__(*args, **kwargs)
         self.Page.smile = '🦷'
         self.Page.Content.title = 'Повысить'
-        self.Action.action_type = "toggle"
+        self.Action.set_action(ActionType=self.Action.types.TOGGLE)
 
     async def constructor(self) -> None:
         self.self_profile = await get_user(tlg_id=self.User.chat_id)
 
         # check admin mode
         if not self.self_profile or self.self_profile['user_lvl'] < 1:
-            self.Action.action_type = 'redirect'
-            self.Action.redirect_to = 'MM'
-            return
+            return self.Action.set_action(ActionType=self.Action.types.REDIRECT, redirect_to='MM')
         
         # get user
         user = await get_user_by_id(id=self.relayed_payload.Us)
@@ -105,16 +107,14 @@ class DemotedAdmin(Window):
         super().__init__(*args, **kwargs)
         self.Page.smile = '🧄'
         self.Page.Content.title = 'Разжаловать'
-        self.Action.action_type = "toggle"
+        self.Action.set_action(ActionType=self.Action.types.TOGGLE)
 
     async def constructor(self) -> None:
         self.self_profile = await get_user(tlg_id=self.User.chat_id)
 
         # check admin mode
         if not self.self_profile or self.self_profile['user_lvl'] < 1:
-            self.Action.action_type = 'redirect'
-            self.Action.redirect_to = 'MM'
-            return
+            return self.Action.set_action(ActionType=self.Action.types.REDIRECT, redirect_to='MM')
         
         # get user
         user = await get_user_by_id(id=self.relayed_payload.Us)

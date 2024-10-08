@@ -76,7 +76,7 @@ class Keys(Window):
         # setup select
         if self.relayed_payload.Ks:
             self.relayed_payload.sl = self.relayed_payload.Ks
-            self.relayed_payload_del_attr(attr='Ks')
+            self.relayed_payload_del_attrs(attrs=['Ks'])
 
         # pagination
         self.Pagination.add(dataset=user_keys, content_setter=self.content_setter, id_getter=self.id_getter)

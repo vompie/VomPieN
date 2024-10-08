@@ -13,7 +13,7 @@ class NewKey(Window):
         super().__init__(*args, **kwargs)
         self.Page.smile = '🔑'
         self.Page.Content.title = 'Новый ключ'
-        self.Action.action_type = "click"
+        self.Action.set_action(ActionType=self.Action.types.CLICK)
         self.relayed_payload.dad = kwargs.get('dad', 'Keys')
 
     async def constructor(self) -> None:
@@ -56,6 +56,9 @@ class NewKey(Window):
             await send_msg(chat_id=user_keys[0]['tlg_id'], model='InfoMsg', title='Генерация ключей отключена', text='В данный момент генерация ключей недоступна. Обратись к администратору')
             return
 
+        # add subseq message
+        self.SubsequentMessage.add(page=self.create_page(model_name='Info'))
+
         # add new key
         add_client_result = await add_client(tlg_id=user_keys[0]['tlg_id'])
         if not add_client_result:
@@ -72,9 +75,12 @@ class DeleteKey(Window):
         super().__init__(*args, **kwargs)
         self.Page.smile = '🗑'
         self.Page.Content.title = 'Удалить'
-        self.Action.action_type = "click"
+        self.Action.set_action(ActionType=self.Action.types.CLICK)
 
     async def constructor(self) -> None:
+        # add subseq message
+        self.SubsequentMessage.add(page=self.create_page(model_name='Info'))
+
         # delete key
         delete_result = await delete_client(id=self.relayed_payload.Ks)
         if not delete_result:
@@ -87,7 +93,7 @@ class GetKey(Window):
         super().__init__(*args, **kwargs)
         self.Page.smile = '🎫'
         self.Page.Content.title = 'Получить'
-        self.Action.action_type = "send"
+        self.Action.set_action(ActionType=self.Action.types.SEND)
 
     async def constructor(self) -> None:
         self.Page.Content.title = f'Ключ к {BOT_NAME} {BOT_SMILE}'
@@ -108,17 +114,18 @@ class EnableKey(Window):
         super().__init__(*args, **kwargs)
         self.Page.smile = '🌕'
         self.Page.Content.title = 'Включить'
-        self.Action.action_type = "toggle"
+        self.Action.set_action(ActionType=self.Action.types.TOGGLE)
 
     async def constructor(self) -> None:
         self.self_profile = await get_user(tlg_id=self.User.chat_id)
 
         # check admin mode
         if not self.self_profile or self.self_profile['user_lvl'] < 1:
-            self.Action.action_type = 'redirect'
-            self.Action.redirect_to = 'MM'
-            return
+            return self.Action.set_action(ActionType=self.Action.types.REDIRECT, redirect_to='MM')
         
+        # add subseq message
+        self.SubsequentMessage.add(page=self.create_page(model_name='Info'))
+
         # update key
         await update_client_by_key_id(id=self.relayed_payload.Ks, enabled=True)
 
@@ -128,16 +135,17 @@ class DisableKey(Window):
         super().__init__(*args, **kwargs)
         self.Page.smile = '🌑'
         self.Page.Content.title = 'Выключить'
-        self.Action.action_type = "toggle"
+        self.Action.set_action(ActionType=self.Action.types.TOGGLE)
 
     async def constructor(self) -> None:
         self.self_profile = await get_user(tlg_id=self.User.chat_id)
 
         # check admin mode
         if not self.self_profile or self.self_profile['user_lvl'] < 1:
-            self.Action.action_type = 'redirect'
-            self.Action.redirect_to = 'MM'
-            return
+            return self.Action.set_action(ActionType=self.Action.types.REDIRECT, redirect_to='MM')
+
+        # add subseq message
+        self.SubsequentMessage.add(page=self.create_page(model_name='Info'))
 
         # update key
         await update_client_by_key_id(id=self.relayed_payload.Ks, enabled=False)
