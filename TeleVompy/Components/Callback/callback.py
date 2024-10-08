@@ -1,4 +1,4 @@
-from ...Engine.base_class import BaseClass
+from ...Utils.base_class import BaseClass
 from .payload import Payload
 
 
@@ -25,7 +25,7 @@ class Callback(BaseClass):
         """ Sets the payload data """
         self.__payload = payload
 
-    def create(self, payload: str | None = '', dad: str | None = '') -> 'Callback':
+    def create(self, payload: str | None = None, dad: str | None = None) -> 'Callback':
         """ 
         Creates a new callback 
         
@@ -44,7 +44,7 @@ class Callback(BaseClass):
         callback.__set_base_data(dad=dad)
         return callback
 
-    def copy(self, payload: Payload, dad: str | None = '', **kwargs) -> 'Callback':
+    def copy(self, payload: Payload, dad: str | None = None, **kwargs) -> 'Callback':
         """
         Creates a copy of the callback 
         

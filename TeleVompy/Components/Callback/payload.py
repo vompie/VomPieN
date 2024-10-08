@@ -1,4 +1,4 @@
-from ...Engine.base_class import BaseClass
+from ...Utils.base_class import BaseClass, dprint
 from .compression import Compression
 
 from typing import Any
@@ -18,34 +18,22 @@ class Payload(BaseClass):
 
     Methods
     -------
-    __init__(`self`, data: `str` = None, *args, **kwargs) -> `None`: Initializes the Payload object
-
-    convention() -> `None`: Provides an abbreviation of each attribute's full name for better readability
-
-    __getattr__(`self`, name: `str`) -> `Any`: Handles attribute access for undefined attributes
-
-    set_attrs(`self`, items: `dict` | None = None) -> `Payload`: Sets attributes from a dictionary
-
-    del_attr(`self`, attr: `str`) -> `Payload`: Deletes an attribute from the payload
-
-    del_all(`self`) -> `Payload`: Deletes all attributes from the payload
-
-    copy(`self`, dad: `str` | `None` = '*') -> `Payload`:  Creates a copy of the Payload object
-
-    string(`self`) -> `str`: Returns the payload data as a string
-
-    get(`self`) -> `Payload`: Retrieves the payload data
-
-    __get_payload(`self`) -> `None`: Parses the callback data and sets attributes
-
-    __public_attrs(`self`) -> `dict`: Returns a dictionary of public attributes
-
-    __to_str(data: `dict` | `None` = None) -> `str`: Converts a dictionary to a JSON string and compress data
-
-    __to_dict(data: `str` | `None` = None) -> `dict`: Converts a JSON string to a dictionary and decompress data
+    * __init__(`self`, data: `str` = None, *args, **kwargs) -> `None`: Initializes the Payload object - 
+    * convention() -> `None`: Provides an abbreviation of each attribute's full name for better readability   - 
+    * __getattr__(`self`, name: `str`) -> `Any`: Handles attribute access for undefined attributes    - 
+    * set_attrs(`self`, items: `dict` | None = None) -> `Payload`: Sets attributes from a dictionary  - 
+    * del_attr(`self`, attr: `str`) -> `Payload`: Deletes an attribute from the payload   - 
+    * del_all(`self`) -> `Payload`: Deletes all attributes from the payload   - 
+    * copy(`self`, dad: `str` | `None` = '*') -> `Payload`:  Creates a copy of the Payload object - 
+    * string(`self`) -> `str`: Returns the payload data as a string   - 
+    * get(`self`) -> `Payload`: Retrieves the payload data    - 
+    * __get_payload(`self`) -> `None`: Parses the callback data and sets attributes   - 
+    * __public_attrs(`self`) -> `dict`: Returns a dictionary of public attributes - 
+    * __to_str(data: `dict` | `None` = None) -> `str`: Converts a dictionary to a JSON string and compress data   - 
+    * __to_dict(data: `str` | `None` = None) -> `dict`: Converts a JSON string to a dictionary and decompress data
     """
 
-    def __init__(self, data: str = None, *args, **kwargs):
+    def __init__(self, data: str = None):
         """ Initializes the Payload object """
         super().__init__()
         self.__special_int_attr: dict = {
@@ -65,6 +53,7 @@ class Payload(BaseClass):
             'BPrv': 'base class Button Previous',
             'BSlc': 'base class Button Select',
             'BYes': 'base class Button Yes',
+            'BNah': 'base class Button No',
             'dad': '`parent` page for the `page`',
             'pg': 'sequential number of the `page`',
             'sl': 'selected item in list `page`'
@@ -89,7 +78,7 @@ class Payload(BaseClass):
             try:
                 setattr(self, key, value)
             except Exception as e:
-                if self.CfgEng.DEBUG: print(f"{self} setting payload attribute error: {e}")
+                dprint(self, f"setting payload attribute error: {e}")
         return self
 
     def del_attr(self, attr: str) -> 'Payload':
@@ -107,11 +96,10 @@ class Payload(BaseClass):
         self.__data = ""
         return self
 
-    def copy(self, dad: str | None = '*', items: dict | None = None) -> 'Payload':
+    def copy(self, dad: str | None = None, items: dict | None = None) -> 'Payload':
         """ Creates a copy of the Payload object """
-        dad = dad if dad else self.dad
-        items['dad'] = dad
-        payload = Payload(f"{dad};{self.string()}").get()
+        items['dad'] = dad if dad else self.dad
+        payload = Payload(f"{items['dad']};{self.string()}").get()
         payload.set_attrs(items=items)
         return payload
 
@@ -147,6 +135,7 @@ class Payload(BaseClass):
         try:
             return Compression(input_data=dumps(data)).compress()
         except Exception as e:
+            dprint('Payload', f'to str error: {e}')
             return ''
 
     @staticmethod
@@ -155,4 +144,5 @@ class Payload(BaseClass):
         try:
             return loads(Compression(input_data=data).decompress())
         except Exception as e:
+            dprint('Payload', f'to dict error: {e}')
             return {}

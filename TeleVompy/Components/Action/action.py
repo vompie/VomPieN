@@ -1,75 +1,49 @@
-from ...Engine.messenger import Messenger
-from ...Engine.model import Model
+from ...Utils.base_class import BaseClass
+from .action_types import ActionTypes
 
 from typing import TYPE_CHECKING
-
 if TYPE_CHECKING:
-    from ...Interface.window import Window, User, Page, Payload
+    from ....TeleVompy import User
+    from ....TeleVompy.Components import Page
 
 
-class Action(Messenger):    
-    def __init__(self, user: 'User', page: 'Page', *args, **kwargs):
+class Action(BaseClass):
+    def __init__(self, user: 'User', page: 'Page'):
         """
         Initialize Action class with User and Page instances
 
         Parameters
         ----------
-        - User (`User`): User object
+        - user (`User`): User object
         - page (`Page`): Page object
+        - kwargs (`Any`): Only for parameters that EXIST in the called methods of the Bot object!
         """
-        
-        super().__init__(user=user, page=page)
+
+        super().__init__()
         self.__User: User = user # a instance of User object
-        self.__Models: Model = Model().models # a instance of Model object
-        self.__relayed_payload: Payload = page.relayed_payload # relayed payload
-        self.action_type: str = self.CfgAction.DEFAULT_ACTION # messenger action for window
-        self.redirect_to: str = '' # name of model to redirecting
-        self.__set_attr(**kwargs) # setting kwargs attributes
+        self.__Page: Page = page # a instance of Page object
+        self.__types = ActionTypes # types of an actions
+        self.__action: object = None # current action type
+        self.set_action(ActionType=self.CfgAction.DEFAULT_ACTION) # set the default action
 
-    def __set_attr(self, **kwargs) -> None:
-        """ Set the attributes of the object """
-        for attr in kwargs:
-            if hasattr(self, attr):
-                setattr(self, attr, kwargs[attr])
-    
-    def get_action(self) -> callable:
-        """ Returns the action function based on the action type """
-        action = getattr(self, self.action_type, None)
-        return action if callable(action) else False
+    @property
+    def types(self):
+        """ Returns the EnumTypes of an actions """
+        return self.__types    
 
-    async def send(self) -> None:
-        return await super().send()
+    @property
+    def action(self) -> object:
+        """ Returns the action object associated with the current action type """
+        return self.__action
 
-    async def edit(self) -> None:
-        return await super().edit()
+    def set_action(self, ActionType: object | ActionTypes, *args, **kwargs) -> None:
+        """ Set the action type """
+        if isinstance(ActionType, str):
+            ActionType = self.__types[ActionType]
+        if isinstance(ActionType, ActionTypes):
+            ActionType = ActionType.value
+        self.__action = ActionType(user=self.__User, page=self.__Page, *args, **kwargs)  
 
-    async def delete(self) -> None:
-        return await super().delete()
-    
-    async def invoice(self) -> None:
-        return await super().invoice()
-    
-    async def nothing(self) -> None:
-        """ Executes all the Window object code, but does not send it """
-        if self.CfgEng.DEBUG: print(f"{self} 'ok, I'm sending nothing, are you happy?'")
-        return await super().nothing()
-
-    async def alert(self) -> None:
-        return await super().alert()        
-
-    async def click(self) -> None:
-        self.__User.payload = f"{self.__relayed_payload.dad};{self.__relayed_payload.string()}"
-        window: Window = self.__Models[self.__relayed_payload.dad](user=self.__User)
-        await window.action()
-
-    async def redirect(self) -> None:
-        if not self.redirect_to:
-            # if empty redirect then redirect to self -> just rebuild the window 
-            self.redirect_to = self.__relayed_payload.dad 
-        self.__User.payload = f"{self.__relayed_payload.dad};{self.__relayed_payload.string()}"
-        window: Window = self.__Models[self.redirect_to](user=self.__User)
-        await window.action()
-
-    async def toggle(self) -> None:
-        window: Window = self.__Models[self.__relayed_payload.dad](user=self.__User)
-        await window.action()
+    def get_action_type(self) -> str:
+        """ Returns the action type as a string """
+        return self.__action.__class__.__name__

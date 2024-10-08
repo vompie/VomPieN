@@ -1,27 +1,28 @@
 from aiogram import Bot, Dispatcher
-from .base_class import BaseClass
+
+from ..Utils import dprint
 
 
-class SingleTonBotEngine(BaseClass):
+class SingleTonBotEngine:
     """ The SingleTon Bot Engine initializes `Bot` from the aiogram library and `models` to access page models """
     __instance: 'SingleTonBotEngine' = None
     __bot: Bot | None = None
     __dp: Dispatcher | None = None
     __payments_token: str | None = None
     
-    def __new__(cls, token: str | None = "", payments_token: str | None = None, *args, **kwargs):
+    def __new__(cls, token: str | None = None, payments_token: str | None = None):
         if cls.__instance is None and not token:
-            if BaseClass.CfgEng.DEBUG: print('"SingleTonBotEngine" -> need bot token to create instance')
+            dprint('SingleTonBotEngine', 'need bot token to create instance')
             return cls.__instance
         if cls.__instance is None and token:
-            if BaseClass.CfgEng.DEBUG: print(f'"SingleTonBotEngine" -> create instance with {token=}')
-            cls.__instance = super(SingleTonBotEngine, cls).__new__(cls, *args, **kwargs)
+            dprint('SingleTonBotEngine', f'create instance with {token=}')
+            cls.__instance = super(SingleTonBotEngine, cls).__new__(cls)
             cls.__bot = Bot(token=token)
             cls.__dp = Dispatcher()
             cls.__payments_token = payments_token
         return cls.__instance
 
-    def __init__(self, token: str | None = "", payments_token: str | None = None, *args, **kwargs):
+    def __init__(self, token: str | None = None, payments_token: str | None = None):
         """ 
         Initializes the bot engine with the provided token and payments token
         
@@ -36,7 +37,7 @@ class SingleTonBotEngine(BaseClass):
         - dp (`Dispatcher`): A instance of the `aiogram.Dispatcher` class
         - payments_token (`str`): The token for payments
         """
-        super().__init__(*args, **kwargs)
+        super().__init__()
 
     @property
     def bot(self) -> Bot:

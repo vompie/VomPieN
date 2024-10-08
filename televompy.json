@@ -1,0 +1,31 @@
+{
+  "Page": {
+    "ANSWER": "",
+    "ALERT": "",
+    "SHOW_LINK_PREVIEW": false,
+    "BLOCKED": false,
+    "STATE": true,
+    "EFFECT": ""
+  },
+
+  "Content": {
+    "USE_TEMP": true,
+    "USE_EMOJI_NUMBERS_IN_TITLE": false,
+    "TITLE_TEMP": "<b>{title}</b>",
+    "TEXT_TEMP": "\n{text}"
+  },
+
+  "Pagination": {
+    "OFFSET": 5
+  },
+
+  "Action": {
+    "DEFAULT_ACTION": "EDIT_OR_SEND"
+  },
+
+  "Engine": {
+    "DEBUG": true,
+    "IGNORE_MODELS_DIRS": [],
+    "IGNORE_MODELS_FILES": []
+  }
+}

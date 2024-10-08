@@ -1,11 +1,10 @@
-from TeleVompy.Engine.engine import SingleTonBotEngine
-from TeleVompy.Interface.filters import Filters
+from TeleVompy import SingleTonBotEngine, Filter
 
 from settings import BOT_TOKEN
 
 
 Engine = SingleTonBotEngine(token=BOT_TOKEN)
-Filter = Filters()
+Filter = Filter()
 
 
 # Main loop
@@ -29,8 +28,8 @@ async def main():
     Engine.dp.message.register(other_msgs, )
 
     # Registration callbacks
-    Engine.dp.callback_query.register(model_callbacks, Filter.model)
-    Engine.dp.callback_query.register(block_callbacks, Filter.blocked_model)
+    Engine.dp.callback_query.register(model_callbacks, Filter.Model)
+    Engine.dp.callback_query.register(block_callbacks, Filter.ModelBlock)
     Engine.dp.callback_query.register(other_callback, )
 
     # Start bot polling

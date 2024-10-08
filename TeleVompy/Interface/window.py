@@ -1,14 +1,9 @@
-from ..Engine.base_class import BaseClass
-
-from ..Components.Page.page import Page, Pagination
-from ..Components.Callback.callback import Callback, Payload
-from ..Components.Action.action import Action
-from ..Components.Subsequent.subsequent_message import SubsequentMessage
+from ..Utils.base_class import BaseClass, dprint
+from ..Components import Page, Pagination, Callback, Payload, Action, SubsequentMessage
 
 from typing import TYPE_CHECKING
-
 if TYPE_CHECKING:
-    from ..Engine.user import User
+    from ...TeleVompy import User
 
 
 class Window(BaseClass):
@@ -30,7 +25,7 @@ class Window(BaseClass):
         __payload: str = self.__User.payload if self.__User else ''
         self.__relayed_payload: Payload = Payload(data=__payload).get()
         self.__Page: Page = self.create_page(model_name=self.__name, relayed_payload=self.__relayed_payload, *args, **kwargs) if not page else page
-        self.__Action: Action = Action(user=self.__User, page=self.__Page, *args, **kwargs)
+        self.__Action: Action = Action(user=self.__User, page=self.__Page)
         self.__SubsequentMessage: SubsequentMessage = SubsequentMessage(user=self.__User, is_subsequent=kwargs.get('is_subsequent', False))
 
 
@@ -42,7 +37,7 @@ class Window(BaseClass):
 
     async def constructor(self) -> None:
         """ Implement your window initialization logic here """
-
+        
     async def destructor(self) -> None:
         """ Implement your window destruction logic here """
 
@@ -95,9 +90,10 @@ class Window(BaseClass):
         self.__relayed_payload.set_attrs(items=items)
         return self
     
-    def relayed_payload_del_attr(self, attr: str) -> 'Window':
-        """ Deletes an attribute from the relayed payload """
-        self.__relayed_payload.del_attr(attr=attr)
+    def relayed_payload_del_attrs(self, attrs: list[str]) -> 'Window':
+        """ Deletes an attributes from the relayed payload """
+        for attr in attrs:
+            self.__relayed_payload.del_attr(attr=attr)
         return self
 
     def relayed_payload_recreate(self, items: dict | None = None) -> 'Window':
@@ -146,9 +142,8 @@ class Window(BaseClass):
     async def action(self) -> 'Window':
         """ Performs the action of the window """
         await self.constructor()
-        if not (action:=self.Action.get_action()):
-            return
-        await action()
+        if self.Action.action:
+            await self.Action.action.execute()
         await self.__SubsequentMessage.action()
         await self.destructor()
         return self

@@ -1,9 +1,9 @@
-from ...Engine.base_class import BaseClass
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
+from ...Utils.base_class import BaseClass, dprint
 from uuid import uuid4
+
 from typing import TYPE_CHECKING
-
-
 if TYPE_CHECKING:
     from ..Page.page import Page
 
@@ -14,17 +14,13 @@ class InlineKeyBoard(BaseClass):
 
     Attributes
     ----------
-    __keyboard (`InlineKeyboardMarkup`): The generated inline keyboard
+    - keyboard(`self`) -> `InlineKeyboardMarkup`: Getter for the keyboard attribute
 
     Methods
     -------
-    __init__(`self`, buttons: `list[dict]]` | `None` = `None`): Constructor to initialize the keyboard
-
-    __make_keyboard(`self`, buttons: `list[dict]]`) -> `None`: Private method to create the keyboard
-
-    __cut_payload_data(`self`, payload_data: `str`) -> `str`: Private method to cut the payload data
-
-    keyboard(`self`) -> `InlineKeyboardMarkup`: Getter for the keyboard attribute
+    * __init__(`self`, buttons: `list[dict]]` | `None` = `None`): Constructor to initialize the keyboard
+    * __make_keyboard(`self`, buttons: `list[dict]]`) -> `None`: Private method to create the keyboard
+    * __cut_payload_data(`self`, payload_data: `str`) -> `str`: Private method to cut the payload data
     """
         
     def __init__(self, buttons: list[dict] | None = None):
@@ -33,9 +29,9 @@ class InlineKeyBoard(BaseClass):
 
         Parameters
         ----------
-        buttons (`list[dict]`): A list of dictionaries representing the buttons
-
-        Each dictionary should have the following keys: '`page`', '`name`', '`row`', '`payload`' and '`kwargs`'
+        - buttons (`list[dict]`): A list of dictionaries representing the buttons
+            Each dictionary should have the following keys: '`page`', '`name`', '`row`', '`payload`' and '`kwargs`'.
+            The rest of the data is taken from the `kwargs` (if transmitted) or from the `page` by default
         """
 
         super().__init__()
@@ -60,9 +56,9 @@ class InlineKeyBoard(BaseClass):
 
         Parameters
         ----------
-        buttons (`list[dict]`): A `list` of `dictionaries` representing the buttons.
-        Each dictionary should have the following keys: '`page`', '`name`', '`row`', '`payload`' and '`kwargs`'.
-        The rest of the data is taken from the `kwargs` (if transmitted) or from the `page` by default
+        - buttons (`list[dict]`): A `list` of `dictionaries` representing the buttons.
+            Each dictionary should have the following keys: '`page`', '`name`', '`row`', '`payload`' and '`kwargs`'.
+            The rest of the data is taken from the `kwargs` (if transmitted) or from the `page` by default
 
         Raises
         ------
@@ -80,40 +76,37 @@ class InlineKeyBoard(BaseClass):
 
                 # properties
                 page: Page = button['page']
-                name: str = button['name']
                 payload: str = button['payload']
                 kwargs: dict = button['kwargs']
-                title: str = kwargs.get('title', page.Content.title)
                 block: bool = kwargs.get('block', page.block)
-                answer: str = kwargs.get('answer', page.answer)[:50]
-                smile_block: str = kwargs.get('smile_block', page.smile_block)
                 state: bool = kwargs.get('state', page.state)
-                smile_negative: str = kwargs.get('smile_negative', page.smile_negative)
-                smile: str = kwargs.get('smile', page.smile)
-                
+
                 # forming a callback and text
-                callback_data = f"{name};{cheat}{payload}" # forming a callback from: the model name;cheat(if exist);payload
-                text = f"{smile} "
+                callback_data = f"{page.model_name};{cheat}{payload}" # forming a callback from: the model name;cheat(if exist);payload
+                text = f"{kwargs.get('smile', page.smile)} "
                 if block: # if the window is blocked (unavailable)
-                    text = f"{smile_block} "
-                    callback_data = f"#{answer};{str(uuid4())[:10]}"
+                    text = f"{kwargs.get('smile_block', page.smile_block)} "
+                    callback_data = f"#{kwargs.get('answer', page.answer)[:55]};{str(uuid4())[:5]}"
                 elif not state: # if the window is in the False state
-                    text = f"{smile_negative} "                   
-                text += f"{title}"
+                    text = f"{kwargs.get('smile_negative', page.smile_negative)} "                   
+                text += f"{kwargs.get('title', page.Content.title)}"
                 cheat = ''
 
-                # check callback_data lenght
-                if len(callback_data) > 64: # TODO: CHANGE TO PAYLOAD LEN
-                    if self.CfgEng.DEBUG: print(f"{self} created callback data keyboard error: {len(callback_data)} > 64 bytes!\n{callback_data}")
-                    callback_data = self.__cut_payload_data(paylaod_data=payload)
+                # check callback data lenght
+                if len(callback_data) > 64:
+                    dprint(self, f"created callback data keyboard error: {len(callback_data)} > 64 bytes!\n{callback_data}")
+                    callback_data = self.__cut_payload_data(payload_data=payload)
 
+                # append inlinebutton
                 rows[row].append(InlineKeyboardButton(text=text, callback_data=callback_data))
+
+            # sort rows and setup keyboard
             sorted_rows = dict(sorted(rows.items()))
             self.__keyboard = InlineKeyboardMarkup(inline_keyboard=sorted_rows.values())
         except Exception as e:
-            if self.CfgEng.DEBUG: print(f"{self} -> make_keyboard error: {e}")
+            dprint(self, f"make_keyboard error: {e}")
 
-    def __cut_payload_data(self, paylaod_data: str) -> str:
+    def __cut_payload_data(self, payload_data: str) -> str:
         """ Cut payload data """
-        # TODO: rewrite, now it's just replace payload
+        # so... now it's just replace payload
         return f"{uuid4()}"

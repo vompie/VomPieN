@@ -1,4 +1,4 @@
-from ...Engine.base_class import BaseClass
+from ...Utils.base_class import BaseClass, dprint
 from .parse_mode_html import ParseModeHTML
 from ..Media.media import Media
 
@@ -15,6 +15,10 @@ class Content(BaseClass):
         self.use_temp_for_text: bool = self.CfgContent.USE_TEMP # flag indicating use a template for the title and text
         self.html: ParseModeHTML = ParseModeHTML # object to formating text in HTML markdown
         self.parse_mode: str = self.CfgContent.PARSE_MODE # text parse mode
+        if self.CfgPagination.OFFSET < 1:
+            self.CfgPagination.OFFSET = 1 # default offset if not provided in config
+        elif self.CfgPagination.OFFSET > 6:
+            self.CfgPagination.OFFSET = 6 # default offset if provided in config
         self.offset: int = self.CfgPagination.OFFSET # offset for pagination on page
         self.__Media: Media = Media(content=self.content, parse_mode=self.parse_mode) # media object
         self.__set_attr(**kwargs) # setting kwargs attributes
@@ -60,8 +64,8 @@ class Content(BaseClass):
     def __set_content(self) -> None:
         """ Clear the content and set it with the current title and text """    
         self.__content = ""
-        title = self.CfgContent.TITLE if self.use_temp_for_text else '{title}'
-        text = self.CfgContent.TEXT if self.use_temp_for_text else '{text}'
+        title = self.CfgContent.TITLE_TEMP if self.use_temp_for_text else '{title}'
+        text = self.CfgContent.TEXT_TEMP if self.use_temp_for_text else '{text}'
         if self._title:
             self.__content += f"{title.format(title=self._title)}\n"
         if self._text:
@@ -73,11 +77,11 @@ class Content(BaseClass):
         """ Cut message to fit in the text length limit with some media or without it """
         if self.__Media.has_files():
             if len(self.__content) > self.CfgMedia.TEXT_LENGTH_MEDIA:
-                self.__content = f"{self.__content[:self.CfgMedia.TEXT_LENGTH_MEDIA-5]}..."
-                if self.CfgEng.DEBUG: print(self, "cut_text -> because message with media was too long")    
+                self.__content = f"{self.__content[:self.CfgMedia.TEXT_LENGTH_MEDIA-10]}..."
+                dprint(self, "cut_text -> because message with media was too long")    
         elif len(self.__content) > self.CfgMedia.TEXT_LENGTH:
-            self.__content = f"{self.__content[:self.CfgMedia.TEXT_LENGTH-5]}..."
-            if self.CfgEng.DEBUG: print(self, "cut_text -> because message was too long")
+            self.__content = f"{self.__content[:self.CfgMedia.TEXT_LENGTH-10]}..."
+            dprint(self, "cut_text -> because message was too long")
 
     def set_content_item(self, number: int, is_select: bool = False, header: str = '', footer: str = '') -> None:
         """
@@ -93,20 +97,24 @@ class Content(BaseClass):
 
         header: ParseModeHTML = self.html(header, husk=False)
         content = ''
+
         # make pointer
         if is_select:
             header = header.bold()
             content = self.CfgPage.SMILE_POINTER if self.CfgContent.USE_EMOJI_NUMBERS_IN_TITLE else f"{self.CfgPage.SMILE_POINTER} "
         else:
             header = header.text
+
         # make header
         if self.CfgContent.USE_EMOJI_NUMBERS_IN_TITLE:
             content += f"{self.CfgPage.EMOJI_NUMBERS[number]}: {header}\n"
         else:
             number = self.html(number, husk=False).bold() 
             content += f"{number}. {header}\n"
+
         # make footer
         if footer:
             content += f"{footer}\n"
+            
         # update text
         self.text += f"{content}\n"

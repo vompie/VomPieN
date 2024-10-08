@@ -1,5 +1,6 @@
-from .engine import BaseClass
 from aiogram.types import Message, CallbackQuery
+
+from ..Utils import BaseClass
 
 
 class User(BaseClass):
@@ -16,10 +17,9 @@ class User(BaseClass):
 
     Methods
     -------
-    __init__(`self`, message_query: `Message` | `CallbackQuery` | `User` | `None`, chat_id: `int` | `None`) -> `None`: 
+    * __init__(`self`, message_query: `Message` | `CallbackQuery` | `User` | `None`, chat_id: `int` | `None`) -> `None`: 
         Initializes the User object with the given Message or CallbackQuery or User instance or (None and chat_id)
-
-    copy(`User`) -> `User`: Returns a copy of the `User` object
+    * copy(`User`) -> `User`: Returns a copy of the `User` object without msg_id and payload
     """
 
     def __init__(self, message_query: 'Message | CallbackQuery | User | None' = None, chat_id: int | None = None):
@@ -113,5 +113,5 @@ class User(BaseClass):
         self.__chat_id = chat_id
 
     def copy(self) -> 'User':
-        """ Returns a copy of the User object """
+        """ Returns a copy of the User object without msg_id and payload """
         return User(self)
