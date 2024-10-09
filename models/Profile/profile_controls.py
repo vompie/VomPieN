@@ -28,11 +28,11 @@ class BanUser(Window):
         update_result = await update_user(tlg_id=user['tlg_id'], columns=['is_banned', 'user_lvl'], values=[1, 0])
         if not update_result:
             return
-        
-        # add subseq message
-        self.SubsequentMessage.add(page=self.create_page(model_name='Info'))
 
         await update_client(tlg_id=user['tlg_id'], enabled=False)
+
+        # add subseq message
+        self.SubsequentMessage.add(page=self.create_page(model_name='UpdCfg'))
 
         # send information message
         from bot_service.utils import send_msg
@@ -63,10 +63,10 @@ class UnBanUser(Window):
         if not update_result:
             return
         
-        # add subseq message
-        self.SubsequentMessage.add(page=self.create_page(model_name='Info'))
-
         await update_client(tlg_id=user['tlg_id'], enabled=True)
+
+        # add subseq message
+        self.SubsequentMessage.add(page=self.create_page(model_name='UpdCfg'))
         
         # send information message
         from bot_service.utils import send_msg

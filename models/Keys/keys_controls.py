@@ -23,7 +23,7 @@ class NewKey(Window):
         if self.relayed_payload.Bt == 'UsersAdmins':
             user_keys = await get_user_left_join_keys_by_user_id(id=self.relayed_payload.Us)
         # new key for keys button
-        if self.relayed_payload.Bt == 'AdminPanel':
+        elif self.relayed_payload.Bt == 'AdminPanel':
             user = await get_user_by_key_id(id=self.relayed_payload.Ks)
             user_keys = await get_user_left_join_keys(tlg_id=user['tlg_id'])
         # new key for self
@@ -56,13 +56,13 @@ class NewKey(Window):
             await send_msg(chat_id=user_keys[0]['tlg_id'], model='InfoMsg', title='Генерация ключей отключена', text='В данный момент генерация ключей недоступна. Обратись к администратору')
             return
 
-        # add subseq message
-        self.SubsequentMessage.add(page=self.create_page(model_name='Info'))
-
         # add new key
         add_client_result = await add_client(tlg_id=user_keys[0]['tlg_id'])
         if not add_client_result:
             return
+        
+        # add subseq message
+        self.SubsequentMessage.add(page=self.create_page(model_name='UpdCfg'))
 
         # send information message
         if self.relayed_payload.Bt:
@@ -78,11 +78,19 @@ class DeleteKey(Window):
         self.Action.set_action(ActionType=self.Action.types.CLICK)
 
     async def constructor(self) -> None:
-        # add subseq message
-        self.SubsequentMessage.add(page=self.create_page(model_name='Info'))
+        self.self_profile = await get_user(tlg_id=self.User.chat_id)
+
+        # check admin mode
+        if not self.self_profile or self.self_profile['user_lvl'] < 1:
+            return self.Action.set_action(ActionType=self.Action.types.REDIRECT, redirect_to='MM')
+
 
         # delete key
         delete_result = await delete_client(id=self.relayed_payload.Ks)
+        
+        # add subseq message
+        self.SubsequentMessage.add(page=self.create_page(model_name='UpdCfg'))
+
         if not delete_result:
             return
         self.relayed_payload.del_attr('Ks')
@@ -122,12 +130,12 @@ class EnableKey(Window):
         # check admin mode
         if not self.self_profile or self.self_profile['user_lvl'] < 1:
             return self.Action.set_action(ActionType=self.Action.types.REDIRECT, redirect_to='MM')
-        
-        # add subseq message
-        self.SubsequentMessage.add(page=self.create_page(model_name='Info'))
 
         # update key
         await update_client_by_key_id(id=self.relayed_payload.Ks, enabled=True)
+
+        # add subseq message
+        self.SubsequentMessage.add(page=self.create_page(model_name='UpdCfg'))
 
 
 class DisableKey(Window):
@@ -144,8 +152,8 @@ class DisableKey(Window):
         if not self.self_profile or self.self_profile['user_lvl'] < 1:
             return self.Action.set_action(ActionType=self.Action.types.REDIRECT, redirect_to='MM')
 
-        # add subseq message
-        self.SubsequentMessage.add(page=self.create_page(model_name='Info'))
-
         # update key
         await update_client_by_key_id(id=self.relayed_payload.Ks, enabled=False)
+
+        # add subseq message
+        self.SubsequentMessage.add(page=self.create_page(model_name='UpdCfg'))

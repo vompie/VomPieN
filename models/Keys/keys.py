@@ -98,7 +98,7 @@ class Keys(Window):
                 self.Page.add_button(model='EnableKey', row=1, callback=callback, block=(not self.Pagination.selected_item), answer='key_not_select')
 
         # delete button
-        self.Page.add_button(model='DeleteKey', row=1, callback=callback, block=(not self.relayed_payload.sl), answer='key_not_select')
+        self.Page.add_button(model='DeleteKey', row=1, callback=callback, block=(not self.relayed_payload.sl or self.self_profile['user_lvl'] < 1), answer='key_not_select')
         
         # get key button
         self.Page.add_button(model='GetKey', row=1, callback=callback, block=(not self.relayed_payload.sl), answer='key_not_select')

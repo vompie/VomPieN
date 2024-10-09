@@ -102,12 +102,12 @@ class RebootSrv(Window):
         if not self.self_profile or self.self_profile['user_lvl'] < 2:
             return self.Action.set_action(ActionType=self.Action.types.REDIRECT, redirect_to='MM')
 
-        # add subseq message
-        self.SubsequentMessage.add(page=self.create_page(model_name='Info'))
-
         reboot_result = await reboot_server()
 
         # send error message
         if not reboot_result:
             from bot_service.utils import send_msg
             await send_msg(message_query=self.User.query, model='ErrorMsg', text='Не удалось перезагрузить сервер', action_type='send')
+
+        # add subseq message
+        self.SubsequentMessage.add(page=self.create_page(model_name='UpdCfg'))

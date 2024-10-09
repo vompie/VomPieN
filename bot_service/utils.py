@@ -106,6 +106,10 @@ async def read_deeplink(message: Message, command: CommandObject) -> bool | str:
                 return False, False
             # add new key
             add_client_result = await add_client(tlg_id=user['tlg_id'])
+
+            #update cfg message
+            await send_msg(chat_id=initiator['tlg_id'], model='UpdCfg')
+
             if not add_client_result:
                 if DEBUG: print(f'Cant add new key (add client error)')
                 return False, False
