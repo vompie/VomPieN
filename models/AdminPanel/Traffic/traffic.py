@@ -9,7 +9,6 @@ class Traffic(Window):
         super().__init__(*args, **kwargs)
         self.Page.smile = '📈'
         self.Page.Content.title = 'Трафик'
-        self.Page.Content.text = "Ошибка получения статистики\n"
 
     async def constructor(self) -> None:
         self.self_profile = await get_user(tlg_id=self.User.chat_id)
@@ -26,12 +25,17 @@ class Traffic(Window):
         
         # parse users
         if result:
+            # parse users
             users = self.parse_stats(stats=stats_str)
-            if not users:
-                users = self.load_stats()
-            else:
+            # save stats
+            if users:
                 self.save_stats(users=users)
-        else: 
+            # if error -> load old stats
+            else:
+                users = self.load_stats()
+        else:
+            self.Page.Content.text = "Ошибка получения статистики\n"
+            # if error -> load old stats
             users = self.load_stats()
         
         # add user info
@@ -85,9 +89,9 @@ class Traffic(Window):
         # string to dict
         stats_dict = {}
         try:
-            stats_dict = loads(stats)['stat']
-            # if 'stat' in stats_dict:
-            #     stats_dict = stats_dict['stat']
+            stats_dict = loads(stats)
+            if 'stat' in stats_dict:
+                stats_dict = stats_dict['stat']
         except Exception as e:
             self.Page.Content.text += f"Ошибка парсинга статистики: {e}\n"
             return False
