@@ -105,17 +105,18 @@ async def execute_command(command: str) -> bool:
         result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True)
         if result.returncode == 0:
             print('stdout', result.stdout)
-            return True
+            return True, result.stdout
         else:
             print('stderr', result.stderr)
-            return False
+            return False, result.stdout
     except Exception as e:
         print(f"Use command '{command}' error: {e}")
-        return False
+        return False, ""
 
 async def reboot_server() -> bool:
     """ Reboot the server """
-    return await execute_command(command='/usr/bin/systemctl restart xray')
+    cmd_result, _ = await execute_command(command='/usr/bin/systemctl restart xray')
+    return cmd_result
 
 async def recovery_server(from_file: str, to_file: str) -> bool:
     """ Recovery the server """

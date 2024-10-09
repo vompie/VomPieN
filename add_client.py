@@ -1,5 +1,3 @@
-import asyncio
-
 from settings import DEFAULT_VLESS_FILE, VLESS_FILE, COPY_VLESS_FILE
 from xray_service.utils import prepare_server, create_and_save_client, make_and_save_vless, apply_changes_server
 
@@ -20,7 +18,3 @@ async def add_client(tlg_id: int, level: int = 1) -> bool:
 
     # apply changes
     return await apply_changes_server(from_file=COPY_VLESS_FILE, to_file=VLESS_FILE)
-
-
-if __name__ == "__main__":
-    asyncio.run(add_client(tlg_id=1))

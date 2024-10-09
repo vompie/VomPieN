@@ -33,6 +33,7 @@ PACKET_ENCODING: str = 'xudp'
 
 SERVER_IP: str = os.getenv("SERVER_IP")
 SERVER_PORT: str = os.getenv("VLESS_PORT")
+API_PORT: str = os.getenv("API_PORT")
 SNI: str = os.getenv("REALITY_SERVER_NAMES")
 HOST: str = os.getenv("HTTP_HOST")
 PATH: str = os.getenv("HTTP_PATH")
