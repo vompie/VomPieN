@@ -20,7 +20,7 @@ class NewKey(Window):
         self.self_profile = await get_user(tlg_id=self.User.chat_id)
 
         # new key for user/admin button
-        if self.relayed_payload.Bt == 'UsersAdmins':
+        if self.relayed_payload.Bt == 'UsersAdmins' or self.relayed_payload.Bt == 'Traffic':
             user_keys = await get_user_left_join_keys_by_user_id(id=self.relayed_payload.Us)
         # new key for keys button
         elif self.relayed_payload.Bt == 'AdminPanel':

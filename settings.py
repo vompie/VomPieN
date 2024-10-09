@@ -22,6 +22,7 @@ DB_FILE: str = os.path.join(PROJECT_DIR, 'database/base.db').replace('\\', '/')
 DEFAULT_VLESS_FILE: str = os.path.join(PROJECT_DIR, 'xray_service/default_vless.json').replace('\\', '/')
 VLESS_FILE: str = os.path.join(XRAY_DIR, 'confs/vless_inbounds.json').replace('\\', '/')
 COPY_VLESS_FILE: str = os.path.join(XRAY_DIR, 'backup/vless_inbounds.json').replace('\\', '/')
+STATS_FILE: str = os.path.join(PROJECT_DIR, 'statistics.json').replace('\\', '/')
 
 PROTOCOL: str = 'vless'
 SERVER_TYPE: str = 'http'

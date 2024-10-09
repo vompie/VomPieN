@@ -13,8 +13,8 @@ class Profile(Window):
     async def constructor(self) -> None:
         self.self_profile = await get_user(tlg_id=self.User.chat_id)
 
-        # from users_admins -> admin
-        if self.relayed_payload.Bt == 'UsersAdmins':
+        # from users_admins or traffic -> admin 
+        if self.relayed_payload.Bt == 'UsersAdmins' or self.relayed_payload.Bt == "Traffic":
             user_keys = await get_user_left_join_keys_by_user_id(id=self.relayed_payload.Us)
         # from keys -> admin
         elif self.relayed_payload.Bt == 'AdminPanel':
@@ -81,11 +81,13 @@ class Profile(Window):
             self.Page.add_button(model='BBck', row=1, callback=self.CallBack.copy(payload=self.relayed_payload, dad='UsersAdmins'))
         elif self.relayed_payload.Bt == 'AdminPanel':   
             self.Page.add_button(model='BBck', row=1, callback=self.CallBack.copy(payload=self.relayed_payload, dad='Keys'))
+        elif self.relayed_payload.Bt == "Traffic":
+            self.Page.add_button(model='BBck', row=1, callback=self.CallBack.copy(payload=self.relayed_payload, dad='Traffic'))
         else:
             self.Page.add_button(model='BBck', row=1, title='В меню', callback=self.CallBack.create(dad='MM'))
 
         # keys button for admins
-        if self.self_profile['user_lvl'] > 0 and self.relayed_payload.Bt == 'UsersAdmins':
+        if self.self_profile['user_lvl'] > 0 and (self.relayed_payload.Bt == 'UsersAdmins' or self.relayed_payload.Bt == "Traffic"):
             self.Page.add_button(model='Keys', row=1, callback=self.CallBack.copy(payload=self.relayed_payload, dad=self.name))
         # new key button for admins
         elif self.self_profile['user_lvl'] > 0 and self.relayed_payload.Bt == 'AdminPanel':

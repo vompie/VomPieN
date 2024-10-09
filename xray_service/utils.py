@@ -104,7 +104,7 @@ async def execute_command(command: str) -> bool:
     try:
         result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True)
         if result.returncode == 0:
-            print('stdout', result.stdout)
+            # print('stdout', result.stdout)
             return True, result.stdout
         else:
             print('stderr', result.stderr)

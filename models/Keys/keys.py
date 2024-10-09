@@ -13,8 +13,8 @@ class Keys(Window):
     async def constructor(self) -> None:
         self.self_profile = await get_user(tlg_id=self.User.chat_id)
 
-        # from users_admins -> profile -> keys      UsersAdmins view
-        if self.relayed_payload.Bt == 'UsersAdmins':
+        # from users_admins or traffic -> profile -> keys      UsersAdmins view
+        if self.relayed_payload.Bt == 'UsersAdmins' or self.relayed_payload.Bt == 'Traffic':
             user_keys = await get_user_left_join_keys_by_user_id(id=self.relayed_payload.Us)
             # callback
             callback = self.CallBack.copy(payload=self.relayed_payload, dad='Profile')
@@ -39,7 +39,7 @@ class Keys(Window):
             return
 
         # max generate keys for UsersAdmins and MainMenu views
-        if not self.relayed_payload.Bt or self.relayed_payload.Bt == 'UsersAdmins':
+        if not self.relayed_payload.Bt or self.relayed_payload.Bt == 'UsersAdmins' or self.relayed_payload.Bt == 'Traffic':
             max_keys = MAX_CLIENT_KEYS
             if user_keys[0]['is_banned']:
                 max_keys = -1
@@ -50,7 +50,7 @@ class Keys(Window):
             is_block = len(user_keys) >= max_keys
 
         # UsersAdmins view
-        if self.self_profile['user_lvl'] > 0 and self.relayed_payload.Bt == 'UsersAdmins':
+        if self.self_profile['user_lvl'] > 0 and (self.relayed_payload.Bt == 'UsersAdmins' or self.relayed_payload.Bt == 'Traffic'):
             # username
             username = f"@{user_keys[0]['username']}" if user_keys[0]['username'] else user_keys[0]['tlg_id']
             level = '(пользователь)'
@@ -110,7 +110,7 @@ class Keys(Window):
 
     def content_setter(self, item: dict) -> tuple[str, str]:
         # admin view for profile keys or user view
-        if not self.relayed_payload.Bt or self.relayed_payload.Bt == 'UsersAdmins':
+        if not self.relayed_payload.Bt or self.relayed_payload.Bt == 'UsersAdmins' or self.relayed_payload.Bt == 'Traffic':
             # header
             header = item['uuid']
             # key info
