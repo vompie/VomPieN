@@ -85,7 +85,9 @@ class Traffic(Window):
         # string to dict
         stats_dict = {}
         try:
-            stats_dict = loads(stats)['stat']
+            stats_dict = loads(stats)
+            if 'stat' in stats_dict:
+                stats_dict = stats_dict['stat']
         except Exception as e:
             self.Page.Content.text += f"Ошибка парсинга статистики: {e}\n"
             return False
