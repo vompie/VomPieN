@@ -9,6 +9,7 @@ class Traffic(Window):
         super().__init__(*args, **kwargs)
         self.Page.smile = '📈'
         self.Page.Content.title = 'Трафик'
+        self.Page.Content.text = "Ошибка получения статистики\n"
 
     async def constructor(self) -> None:
         self.self_profile = await get_user(tlg_id=self.User.chat_id)
@@ -23,17 +24,16 @@ class Traffic(Window):
         # get server stats
         result, stats_str = await stats_query()
         
-        if not result:
-            self.Page.Content.text = "Ошибка получения статистики\n"
-            return 
-
         # parse users
-        users = self.parse_stats(stats=stats_str)
-        if not users:
+        if result:
+            users = self.parse_stats(stats=stats_str)
+            if not users:
+                users = self.load_stats()
+            else:
+                self.save_stats(users=users)
+        else: 
             users = self.load_stats()
-        else:
-            self.save_stats(users=users)
-
+        
         # add user info
         user_info = await self.add_user_info(users=users)
 
@@ -85,9 +85,9 @@ class Traffic(Window):
         # string to dict
         stats_dict = {}
         try:
-            stats_dict = loads(stats)
-            if 'stat' in stats_dict:
-                stats_dict = stats_dict['stat']
+            stats_dict = loads(stats)['stat']
+            # if 'stat' in stats_dict:
+            #     stats_dict = stats_dict['stat']
         except Exception as e:
             self.Page.Content.text += f"Ошибка парсинга статистики: {e}\n"
             return False
@@ -128,7 +128,7 @@ class Traffic(Window):
         """ Load users and their traffic from file """
         try:
             with open(STATS_FILE, 'r') as file:
-                self.Page.Content.text += "Данные не актуальны\n"
+                self.Page.Content.text += "Данные не актуальны\n\n"
                 return loads(file.read())
         except Exception as e:
             self.Page.Content.text += f"Ошибка чтения статистики: {e}\n"
